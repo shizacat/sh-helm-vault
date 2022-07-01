@@ -76,38 +76,15 @@ Helm-Vault supports the following features:
 
 Helm-Vault was created to provide a better way to manage secrets for Helm, with the ability to take existing public Helm Charts, and with minimal modification, provide a way to have production data that is not stored in a public location.
 
-```
-$ helm vault enc values.yaml
-Input a value for /mariadb/db/password:
-Input a value for /externalDatabase/user:
-Input a value for /nextcloud/password:
-```
-
 **[Back to top](#table-of-contents)**
 
 # Project Status
 
-Build Status:
-
-[![CI](https://github.com/Just-Insane/helm-vault/actions/workflows/main.yml/badge.svg)](https://github.com/Just-Insane/helm-vault/actions/workflows/main.yml)
-
-Helm-Vault is in a production state. It should work across platforms, and should be able to handle most YAML thrown at it.
+The work isn't complete.
 
 **[Back to top](#table-of-contents)**
 
 # Getting Started
-
-To get started with Helm-Vault, follow these steps:
-
-1. Clone the repository to your machine
-
-2. Install the requirements
-
-    `pip3 install -r requirements.txt`
-
-3. Test it out! This will test out encrypting an example YAML file
-
-    `./src/vault.py enc ./tests/test.yaml`
 
 ## Dependencies
 
@@ -155,9 +132,16 @@ Both of these checks must pass before PRs will be merged.
 
 ### Using Helm plugin manager (> 2.3.x)
 
+
+1. Install the requirements
+
+```bash
+pip3 install -r https://raw.githubusercontent.com/shizacat/helm-vault-new/main/requirements.txt
 ```
-pip3 install git+https://github.com/Just-Insane/helm-vault
-helm plugin install https://github.com/Just-Insane/helm-vault
+
+2. Install plugin
+```
+helm plugin install https://github.com/shizacat/helm-vault-new
 ```
 
 ## Usage and Examples
