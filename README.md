@@ -13,6 +13,12 @@
 
 Helm-Vault stores private data from YAML files in Hashicorp Vault. Helm-Vault should be used if you want to publicize your YAML configuration files, without worrying about leaking secret information.
 
+## Info
+
+It was taken from this project: https://github.com/Just-Insane/helm-vault.
+The work isn't complete.
+Goal, to make the code more supported.
+
 ## Table of Contents
 
 - [Helm-Vault](#helm-vault)
