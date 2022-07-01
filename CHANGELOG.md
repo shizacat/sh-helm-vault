@@ -5,7 +5,7 @@
 Features:
 
 - Adds an option to set an environment for secrets, using the -e/--environment flag
-  - Moves the editor selection from -e to -ed
+- Moves the editor selection from -e to -ed
 
 Fix:
 

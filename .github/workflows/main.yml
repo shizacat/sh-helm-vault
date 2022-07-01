@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the action will run. 
@@ -55,4 +53,3 @@ jobs:
         run: |
           echo "Running Tests"
           python -m pytest
-      
