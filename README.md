@@ -1,4 +1,4 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/Just-Insane/helm-vault) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/helm-vault-new) 
 
 [![License](https://img.shields.io/github/license/Just-Insane/helm-vault.svg)](https://github.com/Just-Insane/helm-vault/blob/master/LICENSE)
 [![Current Release](https://img.shields.io/github/release/Just-Insane/helm-vault.svg)](https://github.com/Just-Insane/helm-vault/releases/latest)
