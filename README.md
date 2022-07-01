@@ -24,7 +24,7 @@ Goal, to make the code more supported.
 - [Helm-Vault](#helm-vault)
   - [Table of Contents](#table-of-contents)
 - [About the Project](#about-the-project)
-- [Project Status](#project-status)
+  - [Project Status](#project-status)
 - [Getting Started](#getting-started)
   - [Dependencies](#dependencies)
   - [Getting the Source](#getting-the-source)
@@ -62,10 +62,8 @@ Goal, to make the code more supported.
 
 Helm-Vault supports the following features:
 
-- [X] Encrypt YAML files
-- [X] Decrypt YAML files
-- [X] View decrypted YAML files
-- [X] Edit decrypted YAML files
+- [X] Encrypt/Decrypt YAML files
+- [X] View/Edit decrypted YAML files
 - [X] Clean up decrypted YAML files
 - [X] Helm Wrapper, automatically decrypts and cleans up during helm commands
   - [X] Install
@@ -78,7 +76,7 @@ Helm-Vault was created to provide a better way to manage secrets for Helm, with 
 
 **[Back to top](#table-of-contents)**
 
-# Project Status
+## Project Status
 
 The work isn't complete.
 
@@ -97,41 +95,9 @@ The work isn't complete.
   - [ ] VAULT_TOKEN: The token for accessing Vault
 - [ ] YAML files must be in a git repo or have the full path specified in the file. See [Vault Path Templating](#vault-path-templating).
 
-## Getting the Source
-
-This project is [hosted on GitHub](https://github.com/Just-Insane/helm-vault). You can clone this project directly using this command:
-
-```
-git clone git@github.com:Justin-Tech/helm-vault.git
-```
-
-## Running Tests
-
-Helm-Vault has built-in unit tests using pytest, you can run them with the command below:
-
-```
-pip3 install -r ./tests/requirements.txt
-python3 -m pytest
-```
-
-for running tests using docker, you can use the following command:
-
-```
-./run-test.sh
-```
-
-### Other Tests
-
-Unittesting and integration testing is automatically run via Github Actions on commit and PRs.
-
-Additionally, code quality checking is handled by LGTM.com
-
-Both of these checks must pass before PRs will be merged.
-
 ## Installation
 
 ### Using Helm plugin manager (> 2.3.x)
-
 
 1. Install the requirements
 
@@ -485,7 +451,40 @@ $ helm vault diff upgrade nextcloud stable/nextcloud -f values.yaml
 
 **[Back to top](#table-of-contents)**
 
-# Release Process
+# Development
+
+## Getting the Source
+
+This project is [hosted on GitHub](https://github.com/shizacat/helm-vault-new). You can clone this project directly using this command:
+
+```
+git clone git@github.com:shizacat/helm-vault-new.git
+```
+
+## Running Tests
+
+Helm-Vault has built-in unit tests using pytest, you can run them with the command below:
+
+```
+pip3 install -r ./tests/requirements.txt
+python3 -m pytest
+```
+
+for running tests using docker, you can use the following command:
+
+```
+./run-test.sh
+```
+
+### Other Tests
+
+Unittesting and integration testing is automatically run via Github Actions on commit and PRs.
+
+Additionally, code quality checking is handled by LGTM.com
+
+Both of these checks must pass before PRs will be merged.
+
+## Release Process
 
 Releases are made for new features, and bugfixes.
 
@@ -495,7 +494,7 @@ To get a new release, run the following:
 helm plugin upgrade vault
 ```
 
-## Versioning
+### Versioning
 
 This project uses [Semantic Versioning](http://semver.org/). For a list of available versions, see the [repository tag list](https://github.com/Just-Insane/helm-vault/tags).
 
