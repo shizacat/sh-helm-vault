@@ -4,9 +4,11 @@
 [![Current Release](https://img.shields.io/github/release/Just-Insane/helm-vault.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
 [![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
 [![GitHub issues](https://img.shields.io/github/issues/Just-Insane/helm-vault.svg)](https://github.com/shizacat/helm-vault-new/issues)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/Just-Insane/helm-vault.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Just-Insane/helm-vault/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Just-Insane/helm-vault.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Just-Insane/helm-vault/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/context:python)
 [![CI](https://github.com/Just-Insane/helm-vault/actions/workflows/main.yml/badge.svg)](https://github.com/shizacat/helm-vault-new/actions/workflows/main.yml)
+
+
 
 # Helm-Vault
 
