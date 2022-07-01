@@ -542,12 +542,6 @@ This project is licensed under GPLv3 - see [LICENSE.md](LICENSE.md) file for det
 
 **[Back to top](#table-of-contents)**
 
-# Authors
-
-* **[Justin Gauthier](https://github.com/Just-Insane)**
-
-**[Back to top](#table-of-contents)**
-
 # Acknowledgments
 
 The idea for this project comes from [Helm-Secrets](https://github.com/futuresimple/helm-secrets)
