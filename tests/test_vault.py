@@ -15,7 +15,7 @@ PATH_TEST_YAML_DEC = "./tests/data/test.yaml.dec"
 
 def test_load_yaml():
     parsed = vault.parse_args()
-    obj = vault.VaultHelm(
+    obj = vault.HelmVault(
         *parsed.parse_known_args(["enc", "-f", PATH_TEST_FILE])
     )
     data = obj._load_yaml()

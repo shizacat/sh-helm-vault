@@ -22,18 +22,19 @@ Goal, to make the code more supported.
 ## Table of Contents
 
 - [Helm-Vault](#helm-vault)
+  - [Info](#info)
   - [Table of Contents](#table-of-contents)
 - [About the Project](#about-the-project)
   - [Project Status](#project-status)
 - [Getting Started](#getting-started)
   - [Dependencies](#dependencies)
-  - [Getting the Source](#getting-the-source)
-  - [Running Tests](#running-tests)
-    - [Other Tests](#other-tests)
   - [Installation](#installation)
     - [Using Helm plugin manager (> 2.3.x)](#using-helm-plugin-manager--23x)
   - [Usage and Examples](#usage-and-examples)
     - [Environment Variables](#environment-variables)
+      - [Variables for configure the library hvac (Vault client).](#variables-for-configure-the-library-hvac-vault-client)
+      - [Variables for configure the plugin.](#variables-for-configure-the-plugin)
+      - [More detailed information available below:](#more-detailed-information-available-below)
     - [Basic commands:](#basic-commands)
     - [Available Flags](#available-flags)
     - [Usage examples](#usage-examples)
@@ -49,13 +50,16 @@ Goal, to make the code more supported.
       - [Upgrade](#upgrade)
       - [Lint](#lint)
       - [Diff](#diff)
-- [Release Process](#release-process)
-  - [Versioning](#versioning)
+- [Development](#development)
+  - [Getting the Source](#getting-the-source)
+  - [Running Tests](#running-tests)
+    - [Other Tests](#other-tests)
+  - [Release Process](#release-process)
+    - [Versioning](#versioning)
 - [How to Get Help](#how-to-get-help)
 - [Contributing](#contributing)
 - [Further Reading](#further-reading)
 - [License](#license)
-- [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
 
 # About the Project
@@ -143,21 +147,28 @@ Decrypted files have the suffix ".yaml.dec" by default
 
 ### Environment Variables
 
-**Note:** Flags take precedent over Environment Variables.
+**Note:** Flags take precedence over Environment Variables.
+
+#### Variables for configure the library hvac (Vault client).
 
 |Environment Variable|Default Value<br>(if unset)|Overview|Required|
 |--------------------|---------------------------|--------|--------|
 |`VAULT_ADDR`|`null`|The HTTP(S) address fo Vault|Yes|
 |`VAULT_TOKEN`|`null`|The token used to authenticate with Vault|Yes|
 |`VAULT_NAMESPACE`|`null`|The Vault namespace used for the command||
-|`VAULT_PATH`|`secret/helm`|The default path used within Vault||
-|`VAULT_MOUNT_POINT`|`secret`|The default mountpoint used within Vault||
-|`DELIMINATOR`|`changeme`|The value which will be searched for within YAML to prompt for encryption/decryption||
-|`VAULT_TEMPLATE`|`VAULT:`|Used for [Vault Path Templating](#vault-path-templating)||
-|`KVVERSION`|`v1`|The K/V secret engine version within Vault||
-|`EDITOR`| - Windows: `notepad` <br> - macOS/Linux: `vi`|The editor used when calling `helm vault edit`||
 
-More detailed information available below:
+#### Variables for configure the plugin.
+
+|Environment Variable|Default Value<br>(if unset)|Overview|Required|
+|--------------------|---------------------------|--------|--------|
+|`HELM_VAULT_PATH`|`secret/helm`|The default path used within Vault||
+|`HELM_VAULT_MOUNT_POINT`|`secret`|The default mountpoint used within Vault||
+|`HELM_VAULT_DELIMINATOR`|`changeme`|The value which will be searched for within YAML to prompt for encryption/decryption||
+|`HELM_VAULT_TEMPLATE`|`VAULT:`|Used for [Vault Path Templating](#vault-path-templating)||
+|`HELM_VAULT_KVVERSION`|`v1`|The K/V secret engine version within Vault||
+|`HELM_VAULT_EDITOR`| - Windows: `notepad` <br> - macOS/Linux: `vi`|The editor used when calling `helm vault edit`||
+
+#### More detailed information available below:
 
 <details>
 <summary>VAULT_ADDR</summary>
@@ -184,7 +195,7 @@ Default when not set: `null`.
 </details>
 
 <details>
-<summary>VAULT_PATH</summary>
+<summary>HELM_VAULT_PATH</summary>
 
 This is the path within Vault that secrets are stored. It should start with the name of the secrets engine being used and an optional folder within that secrets engine that all Helm-Vault secrets will be stored and through dot name of key.
 
@@ -192,7 +203,7 @@ Default when not set: `secret/helm`, where `secret` is the secrets engine being 
 </details>
 
 <details>
-<summary>VAULT_MOUNT_POINT</summary>
+<summary>HELM_VAULT_MOUNT_POINT</summary>
 
 This is the mountpoint within Vault that secrets are stored. Vault stores secrets in the following url format `/{mount_point}/data/{path}`. Mountpoint in this case could also include any namespaces, e.g. `namespace1/subnamespace/mountpoint` = `/namespace1/subnamespace/mountpoint/data/{path}`.
 
@@ -200,7 +211,7 @@ Default when not set: `secret`, where `secret` is the mountpoint being used.
 </details>
 
 <details>
-<summary>SECRET_DELIM</summary>
+<summary>HELM_VAULT_DELIMINATOR</summary>
 
 This is the value which Helm-Vault will search for within the YAML files to prompt for encryption, or replace when decrypting.
 
@@ -208,7 +219,7 @@ Default when not set: `changeme`.
 </details>
 
 <details>
-<summary>VAULT_TEMPLATE</summary>
+<summary>HELM_VAULT_TEMPLATE</summary>
 
 This is the value that Helm-Vault will search for within the YAML files to denote [Vault Path Templating](#vault-path-templating).
 
@@ -216,7 +227,17 @@ Default when not set: `VAULT:`
 </details>
 
 <details>
-<summary>EDITOR</summary>
+<summary>HELM_VAULT_KVVERSION</summary>
+
+This is the K/V secret engine version within Vault, currently `v1` and `v2` are supported.
+
+Default when not set: `v1`
+
+**Note:** Expect this to change in a later version, as Vault now defaults to `v2` K/V secrets engines.
+</details>
+
+<details>
+<summary>HELM_VAULT_EDITOR</summary>
 
 This is the editor that Helm-Vault will use when requesting `helm vault edit`.
 
@@ -225,16 +246,6 @@ Default when not set:
 - Windows: `notepad`
 - macOS/Linux: `vi`
 
-</details>
-
-<details>
-<summary>KVVERSION</summary>
-
-This is the K/V secret engine version within Vault, currently `v1` and `v2` are supported.
-
-Default when not set: `v1`
-
-**Note:** Expect this to change in a later version, as Vault now defaults to `v2` K/V secrets engines.
 </details>
 
 ### Basic commands:
