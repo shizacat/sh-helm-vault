@@ -36,7 +36,7 @@ def filecheckfunc():
 
 
 def test_enc():
-    os.environ["KVVERSION"] = "v2"
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
     output = []
 
@@ -58,7 +58,7 @@ def test_enc():
 
 
 def test_enc_with_env():
-    os.environ["KVVERSION"] = "v2"
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
     output = []
 
@@ -86,7 +86,7 @@ def test_refuse_enc_from_file_with_bad_name():
 
 
 def test_dec():
-    os.environ["KVVERSION"] = "v2"
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = ["adfs1", "adfs2"]
     output = []
 
@@ -104,7 +104,7 @@ def test_dec():
 
 
 def test_clean():
-    os.environ["KVVERSION"] = "v2"
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     copyfile(PATH_TEST_YAML_DEC, "./tests/test.yaml.dec.bak")
     with pytest.raises(FileNotFoundError):
         vault.main(['clean', '-f .tests/test.yaml', '-v'])
@@ -117,7 +117,7 @@ def test_clean():
     reason="No way of testing without Helm"
 )
 def test_install():
-    os.environ["KVVERSION"] = "v2"
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = []
     output = []
 
