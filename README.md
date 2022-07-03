@@ -265,9 +265,9 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 |Flag|Usage|Default|Availability|
 |----|-----|-------|------------|
 |`-d`, `--deliminator`|The secret deliminator used when parsing|`changeme`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-vp`, `--vaultpath`|The Vault Path (secret mount location in Vault)|`secret/helm`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-mp`, `--mountpoint`|The Vault Mount Point|`secret`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-vt`, `--vaulttemplate`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
+|`-p`, `--path`|The Vault Path (secret mount location in Vault)|`secret/helm`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
+|`-mp`, `--mount-point`|The Vault Mount Point|`secret`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
+|`-t`, `--template`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v1`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-v`, `--verbose`|Verbose output||`enc`, `dec`, `clean`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-s`, `--secret-file`|File containing secrets for input, rather than using stdin, must end in `.yaml.dec`||`enc`|
