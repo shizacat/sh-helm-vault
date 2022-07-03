@@ -3,6 +3,7 @@ services:
   vault:
     container_name: helm-vault
     image: vault
+    network_mode: bridge
     ports:
       - 8200:8200
     environment:
