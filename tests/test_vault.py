@@ -9,21 +9,25 @@ import pytest
 import src.vault as vault
 
 
+PATH_TEST_FILE = "./tests/data/test.yaml"
+PATH_TEST_YAML_DEC = "./tests/data/test.yaml.dec"
+
+
 def test_load_yaml():
     parsed = vault.parse_args()
     obj = vault.VaultHelm(
-        *parsed.parse_known_args(["enc", "-f", "./tests/test.yaml"])
+        *parsed.parse_known_args(["enc", "-f", PATH_TEST_FILE])
     )
     data = obj._load_yaml()
     assert isinstance(data, dict)
 
 
 def test_parser():
-    copyfile("./tests/test.yaml", "./tests/test.yaml.bak")
+    copyfile(PATH_TEST_FILE, "./tests/test.yaml.bak")
     parsed = vault.parse_args()
-    parser = parsed.parse_known_args(['clean', '-f ./tests/test.yaml'])
+    parser = parsed.parse_known_args(["clean", "-f", PATH_TEST_FILE])
     assert(parser)
-    copyfile("./tests/test.yaml.bak", "./tests/test.yaml")
+    copyfile("./tests/test.yaml.bak", PATH_TEST_FILE)
     os.remove("./tests/test.yaml.bak")
 
 
@@ -40,9 +44,9 @@ def test_enc():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s : output.append(s)
+    vault.print = lambda s: output.append(s)
 
-    vault.main(['enc', './tests/test.yaml'])
+    vault.main(["enc", PATH_TEST_FILE])
 
     assert output == [
         'Input a value for nextcloud.password: ',
@@ -64,7 +68,7 @@ def test_enc_with_env():
     vault.input = mock_input
     vault.print = lambda s: output.append(s)
 
-    vault.main(['enc', './tests/test.yaml', '-e', 'test'])
+    vault.main(['enc', PATH_TEST_FILE, '-e', 'test'])
 
     assert output == [
         'Input a value for nextcloud.password: ',
@@ -77,7 +81,7 @@ def test_enc_with_env():
 
 def test_refuse_enc_from_file_with_bad_name():
     with pytest.raises(Exception) as e:
-        vault.main(['enc', './tests/test.yaml', '-s', './tests/test.yaml.bad'])
+        vault.main(['enc', PATH_TEST_FILE, '-s', './tests/test.yaml.bad'])
         assert "ERROR: Secret file name must end with" in str(e.value)
 
 
@@ -92,7 +96,7 @@ def test_dec():
     vault.input = mock_input
     vault.print = lambda s, *args: output.append(s)
 
-    vault.main(['dec', './tests/test.yaml'])
+    vault.main(['dec', PATH_TEST_FILE])
 
     assert output == [
         'Done Decrypting',
@@ -101,10 +105,10 @@ def test_dec():
 
 def test_clean():
     os.environ["KVVERSION"] = "v2"
-    copyfile("./tests/test.yaml.dec", "./tests/test.yaml.dec.bak")
+    copyfile(PATH_TEST_YAML_DEC, "./tests/test.yaml.dec.bak")
     with pytest.raises(FileNotFoundError):
         vault.main(['clean', '-f .tests/test.yaml', '-v'])
-    copyfile("./tests/test.yaml.dec.bak", "./tests/test.yaml.dec")
+    copyfile("./tests/test.yaml.dec.bak", PATH_TEST_YAML_DEC)
     os.remove("./tests/test.yaml.dec.bak")
 
 
@@ -121,11 +125,18 @@ def test_install():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda  s : output.append(s)
+    vault.print = lambda s: output.append(s)
 
     vault.main([
         'install',
-        'stable/nextcloud --name nextcloud --namespace nextcloud -f ../tests/test.yaml --dry-run'
+        "stable/nextcloud",
+        "--name",
+        "nextcloud",
+        "--namespace",
+        "nextcloud",
+        "-f",
+        PATH_TEST_FILE,
+        "--dry-run",
     ])
 
     assert output == [

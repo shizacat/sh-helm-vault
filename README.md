@@ -466,7 +466,7 @@ git clone git@github.com:shizacat/helm-vault-new.git
 Helm-Vault has built-in unit tests using pytest, you can run them with the command below:
 
 ```
-pip3 install -r ./tests/requirements.txt
+pip3 install -r requirements-dev.txt
 python3 -m pytest
 ```
 

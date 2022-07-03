@@ -3,3 +3,4 @@ nose
 datadiff
 mock
 pytest_mock
+pytest-cov

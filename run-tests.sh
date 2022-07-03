@@ -26,6 +26,5 @@ while STATUS=$(getContainerHealth helm-vault); [ "$STATUS" != '"healthy"' ]; do
 done
 printf $'\n'
 
-# install and run tests
-pip3 install -r ./tests/requirements.txt
-python3 -m pytest $@
+# run tests
+pytest --cov=src/ tests/ $@
