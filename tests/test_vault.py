@@ -62,7 +62,7 @@ def test_enc_with_env():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s : output.append(s)
+    vault.print = lambda s: output.append(s)
 
     vault.main(['enc', './tests/test.yaml', '-e', 'test'])
 
@@ -90,7 +90,7 @@ def test_dec():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s : output.append(s)
+    vault.print = lambda s, *args: output.append(s)
 
     vault.main(['dec', './tests/test.yaml'])
 
@@ -108,7 +108,10 @@ def test_clean():
     os.remove("./tests/test.yaml.dec.bak")
 
 
-@pytest.mark.skipif(subprocess.run("helm", shell=True), reason="No way of testing without Helm")
+@pytest.mark.skipif(
+    subprocess.run("helm", shell=True),
+    reason="No way of testing without Helm"
+)
 def test_install():
     os.environ["KVVERSION"] = "v2"
     input_values = []
@@ -120,8 +123,20 @@ def test_install():
     vault.input = mock_input
     vault.print = lambda  s : output.append(s)
 
-    vault.main(['install', 'stable/nextcloud --name nextcloud --namespace nextcloud -f ../tests/test.yaml --dry-run'])
+    vault.main([
+        'install',
+        'stable/nextcloud --name nextcloud --namespace nextcloud -f ../tests/test.yaml --dry-run'
+    ])
 
     assert output == [
         'NAME:   nextcloud',
     ]
+
+
+def test_config():
+    parsed = vault.parse_args()
+    parser, _ = parsed.parse_known_args(
+        ['clean', '-f ./tests/test.yaml', "-v", "--environment", "test"]
+    )
+    r = vault.Config.create_from_env(parser)
+    assert r.environment == "/test"

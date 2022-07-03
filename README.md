@@ -152,10 +152,10 @@ Decrypted files have the suffix ".yaml.dec" by default
 |`VAULT_NAMESPACE`|`null`|The Vault namespace used for the command||
 |`VAULT_PATH`|`secret/helm`|The default path used within Vault||
 |`VAULT_MOUNT_POINT`|`secret`|The default mountpoint used within Vault||
-|`SECRET_DELIM`|`changeme`|The value which will be searched for within YAML to prompt for encryption/decryption||
-|`SECRET_TEMPLATE`|`VAULT:`|Used for [Vault Path Templating](#vault-path-templating)||
-|`EDITOR`| - Windows: `notepad` <br> - macOS/Linux: `vi`|The editor used when calling `helm vault edit`||
+|`DELIMINATOR`|`changeme`|The value which will be searched for within YAML to prompt for encryption/decryption||
+|`VAULT_TEMPLATE`|`VAULT:`|Used for [Vault Path Templating](#vault-path-templating)||
 |`KVVERSION`|`v1`|The K/V secret engine version within Vault||
+|`EDITOR`| - Windows: `notepad` <br> - macOS/Linux: `vi`|The editor used when calling `helm vault edit`||
 
 More detailed information available below:
 
@@ -208,7 +208,7 @@ Default when not set: `changeme`.
 </details>
 
 <details>
-<summary>SECRET_TEMPLATE</summary>
+<summary>VAULT_TEMPLATE</summary>
 
 This is the value that Helm-Vault will search for within the YAML files to denote [Vault Path Templating](#vault-path-templating).
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import os
-import re
 import sys
 import glob
 import argparse
 import platform
 import subprocess
 from typing import Any, IO, Optional, Tuple, Callable
+from dataclasses import dataclass, fields
 
 import hvac
 import ruamel.yaml
@@ -16,48 +16,50 @@ if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or a more recent version is required.")
 
 
-class Envs:
-    def __init__(self, args):
-        self.args = args
+@dataclass
+class Config:
+    vault_addr: str
+    editor: str
+    vault_path: str = "secret/helm"
+    vault_mount_point: str = "secret"
+    vault_template: str = "VAULT:"
+    deliminator: str = "changeme"
+    kvversion: str = "v1"
+    environment: str = ""
 
-        self.vault_addr = os.environ["VAULT_ADDR"]
-
-        self.vault_mount_point = self.get_env(
-            "VAULT_MOUNT_POINT", "mountpoint", "secret")
-        self.vault_path = self.get_env(
-            "VAULT_PATH", "vaultpath", "secret/helm")
-        self.secret_delim = self.get_env(
-            "SECRET_DELIM", "deliminator", "changeme")
-        self.secret_template = self.get_env(
-            "SECRET_TEMPLATE", "vaulttemplate", "VAULT:")
-        self.kvversion = self.get_env("KVVERSION", "kvversion", "v1")
-        self.environment = self.get_env("NONE", "environment", "")
-        self.editor = self.get_env(
-            "EDITOR",
-            "edit",
-            "vi" if platform.system() != "Windows" else "notepad"
-        )
-
-    def get_env(
-        self,
-        environment_var_name: str,
-        arg_name: str,
-        default_value: Optional[str] = None
-    ) -> Optional[str]:
-        value = default_value
+    @classmethod
+    def create_from_env(cls, args) -> "Config":
+        exclude = ["vault_addr"]
+        exclude_env = ["environment"]
+        kwargs = {
+            "vault_addr": os.environ["VAULT_ADDR"],
+            "editor": "vi" if platform.system() != "Windows" else "notepad.exe"
+        }
         source = "DEFAULT"
 
-        if environment_var_name in os.environ:
-            value = os.environ[environment_var_name]
-            source = "ENVIRONMENT"
+        for f in fields(cls):
+            if f.name in exclude:
+                continue
+            env_name = f.name.upper()
 
-        if hasattr(self.args, arg_name) and getattr(self.args, arg_name):
-            value = getattr(self.args, arg_name)
-            source = "ARG"
+            if hasattr(args, f.name) and getattr(args, f.name):
+                kwargs[f.name] = getattr(args, f.name)
+                source = "ARG"
+            elif env_name not in exclude_env and env_name in os.environ:
+                kwargs[f.name] = os.environ[env_name]
+                source = "ENVIRONMENT"
 
-        if self.args.verbose:
-            print(f"The {source} {arg_name} is: {value}")
-        return value
+            if args.verbose:
+                print(
+                    f"The {source} {f.name} is:",
+                    f"{kwargs.get(f.name, f.default)}"
+                )
+        return cls(**kwargs)
+
+    def __post_init__(self):
+        # add '/' before environment
+        if self.environment and not self.environment.startswith("/"):
+            self.environment = f"/{self.environment}"
 
 
 class VaultHelm(object):
@@ -74,13 +76,9 @@ class VaultHelm(object):
         self.args = args
         self.leftovers = leftovers
 
-        self.envs = Envs(self.args)
+        self.envs = Config.create_from_env(self.args)
         self.__secrets = {}
         self.__current_walk_path = []
-
-        # environment config
-        if self.envs.environment:
-            self.envs.environment = f"/{self.envs.environment}"
 
         # yaml config
         self.yaml = ruamel.yaml.YAML()
@@ -311,8 +309,8 @@ class VaultHelm(object):
             return
         value = value.strip()
 
-        if value.startswith(self.envs.secret_template):
-            value = value[len(self.envs.secret_template):]
+        if value.startswith(self.envs.vault_template):
+            value = value[len(self.envs.vault_template):]
             if not value:
                 raise ValueError("Empty secret template")
             value = value.replace("{environment}", self.envs.environment)
@@ -328,7 +326,7 @@ class VaultHelm(object):
             return
         value = value.strip()
 
-        if value != self.envs.secret_delim:
+        if value != self.envs.deliminator:
             return
 
         if not self.__current_walk_path:
@@ -379,21 +377,21 @@ def parse_args():
     encrypt = subparsers.add_parser("enc", help="Parse a YAML file and store user entered data in Vault")
     encrypt.add_argument("yaml_file", type=str, help="The YAML file to be worked on")
     encrypt.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    encrypt.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    encrypt.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault) Default: \"secret/helm\"")
-    encrypt.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
+    encrypt.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    encrypt.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault) Default: \"secret/helm\"")
+    encrypt.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     encrypt.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v2\"")
-    encrypt.add_argument("-s", "--secret-file", type=str, help="File containing the secret for input. Must end in .yaml.dec")
     encrypt.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
     encrypt.add_argument("-e", "--environment", type=str, help="Allows for secrets to be encoded on a per environment basis")
+    encrypt.add_argument("-s", "--secret-file", type=str, help="File containing the secret for input. Must end in .yaml.dec")
 
     # Decrypt help
     decrypt = subparsers.add_parser("dec", help="Parse a YAML file and retrieve values from Vault")
     decrypt.add_argument("yaml_file", type=str, help="The YAML file to be worked on")
     decrypt.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    decrypt.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    decrypt.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    decrypt.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    decrypt.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    decrypt.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    decrypt.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     decrypt.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     decrypt.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
     decrypt.add_argument("-e", "--environment", type=str, help="Allows for secrets to be decoded on a per environment basis")
@@ -408,9 +406,9 @@ def parse_args():
     view = subparsers.add_parser("view", help="View decrypted YAML file")
     view.add_argument("yaml_file", type=str, help="The YAML file to be worked on")
     view.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    view.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    view.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    view.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    view.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    view.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    view.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     view.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     view.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
 
@@ -418,20 +416,20 @@ def parse_args():
     edit = subparsers.add_parser("edit", help="Edit decrypted YAML file. DOES NOT CLEAN UP AUTOMATICALLY.")
     edit.add_argument("yaml_file", type=str, help="The YAML file to be worked on")
     edit.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    edit.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    edit.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    edit.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    edit.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    edit.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    edit.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     edit.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
-    edit.add_argument("-ed", "--editor", help="Editor name. Default: (Linux/MacOS) \"vi\" (Windows) \"notepad\"", const=True, nargs="?")
     edit.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
+    edit.add_argument("-ed", "--editor", help="Editor name. Default: (Linux/MacOS) \"vi\" (Windows) \"notepad\"", const=True, nargs="?")
 
     # Install Help
     install = subparsers.add_parser("install", help="Wrapper that decrypts YAML files before running helm install")
     install.add_argument("-f", "--values", type=str, dest="yaml_file", help="The encrypted YAML file to decrypt on the fly")
     install.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    install.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    install.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    install.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
     install.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    install.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     install.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     install.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
     install.add_argument("-e", "--environment", type=str, help="Environment whose secrets to use")
@@ -440,9 +438,9 @@ def parse_args():
     template = subparsers.add_parser("template", help="Wrapper that decrypts YAML files before running helm install")
     template.add_argument("-f", "--values", type=str, dest="yaml_file", help="The encrypted YAML file to decrypt on the fly")
     template.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    template.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    template.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    template.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    template.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    template.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    template.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     template.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     template.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
 
@@ -450,9 +448,9 @@ def parse_args():
     upgrade = subparsers.add_parser("upgrade", help="Wrapper that decrypts YAML files before running helm install")
     upgrade.add_argument("-f", "--values", type=str, dest="yaml_file", help="The encrypted YAML file to decrypt on the fly")
     upgrade.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    upgrade.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    upgrade.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    upgrade.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    upgrade.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    upgrade.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    upgrade.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     upgrade.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     upgrade.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
 
@@ -460,9 +458,9 @@ def parse_args():
     lint = subparsers.add_parser("lint", help="Wrapper that decrypts YAML files before running helm install")
     lint.add_argument("-f", "--values", type=str, dest="yaml_file", help="The encrypted YAML file to decrypt on the fly")
     lint.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    lint.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    lint.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    lint.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    lint.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    lint.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    lint.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     lint.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     lint.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
 
@@ -470,9 +468,9 @@ def parse_args():
     diff = subparsers.add_parser("diff", help="Wrapper that decrypts YAML files before running helm diff")
     diff.add_argument("-f", "--values", type=str, dest="yaml_file", help="The encrypted YAML file to decrypt on the fly")
     diff.add_argument("-d", "--deliminator", type=str, help="The secret deliminator used when parsing. Default: \"changeme\"")
-    diff.add_argument("-vt", "--vaulttemplate", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
-    diff.add_argument("-mp", "--mountpoint", type=str, help="The Vault Mount Point Default: \"secret/data\"")
-    diff.add_argument("-vp", "--vaultpath", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    diff.add_argument("-vmp", "--vault-mount-point", type=str, help="The Vault Mount Point Default: \"secret/data\"")
+    diff.add_argument("-vp", "--vault-path", type=str, help="The Vault Path (secret mount location in Vault). Default: \"secret/helm\"")
+    diff.add_argument("-vt", "--vault-template", type=str, help="Substring with path to vault key instead of deliminator. Default: \"VAULT:\"")
     diff.add_argument("-kv", "--kvversion", choices=['v1', 'v2'], type=str, help="The KV Version (v1, v2) Default: \"v1\"")
     diff.add_argument("-v", "--verbose", help="Verbose logs", action="store_true")
 
@@ -482,7 +480,6 @@ def parse_args():
 def main(args: Optional[list] = None):
     parsed = parse_args()
     args, leftovers = parsed.parse_known_args(args)
-
     vault_helm = VaultHelm(args, leftovers)
     vault_helm.action()
 
