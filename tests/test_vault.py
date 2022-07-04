@@ -3,6 +3,7 @@
 import os
 import subprocess
 from shutil import copyfile
+from pathlib import PosixPath
 
 import pytest
 
@@ -103,13 +104,26 @@ def test_dec():
     ]
 
 
-def test_clean():
+def test_clean_dec_not_exist(tmp_path: PosixPath):
     os.environ["HELM_VAULT_KVVERSION"] = "v2"
-    copyfile(PATH_TEST_YAML_DEC, "./tests/test.yaml.dec.bak")
     with pytest.raises(FileNotFoundError):
-        vault.main(['clean', '-f .tests/test.yaml', '-v'])
-    copyfile("./tests/test.yaml.dec.bak", PATH_TEST_YAML_DEC)
-    os.remove("./tests/test.yaml.dec.bak")
+        vault.main([
+            "clean",
+            "-v",
+            "-f",
+            str(tmp_path.joinpath("test.yaml"))
+        ])
+
+
+def test_clean(tmp_path: PosixPath):
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+    copyfile(PATH_TEST_YAML_DEC, tmp_path.joinpath("test.yaml.dec"))
+    vault.main([
+        "clean",
+        "-v",
+        "-f",
+        str(tmp_path.joinpath("test.yaml"))
+    ])
 
 
 @pytest.mark.skipif(
