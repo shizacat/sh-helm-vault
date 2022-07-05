@@ -6,6 +6,7 @@ import glob
 import argparse
 import platform
 import subprocess
+from enum import Enum
 from typing import Any, IO, Optional, Tuple, Callable
 from dataclasses import dataclass, fields
 
@@ -16,6 +17,14 @@ if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or a more recent version is required.")
 
 
+class KVVersion(Enum):
+    v1 = "v1"
+    v2 = "v2"
+
+    def __str__(self):
+        return self.value
+
+
 @dataclass
 class Config:
     editor: str
@@ -23,7 +32,7 @@ class Config:
     mount_point: str = "secret"
     template: str = "VAULT:"
     deliminator: str = "changeme"
-    kvversion: str = "v1"
+    kvversion: KVVersion = KVVersion.v2
     environment: str = ""
 
     @classmethod
@@ -41,7 +50,7 @@ class Config:
                 kwargs[f.name] = getattr(args, f.name)
                 source = "ARG"
             elif env_name not in exclude_env and env_name in os.environ:
-                kwargs[f.name] = os.environ[env_name]
+                kwargs[f.name] = f.type(os.environ[env_name])
                 source = "ENVIRONMENT"
 
             if args.verbose:
@@ -242,22 +251,19 @@ class HelmVault(object):
             )
 
         try:
-            if self.envs.kvversion == "v1":
+            if self.envs.kvversion == KVVersion.v1:
                 data = self.vault_client.read(path)
-                value = data.get("data", {}).get(key)
-            elif self.envs.kvversion == "v2":
+                return data.get("data", {}).get(key)
+            if self.envs.kvversion == KVVersion.v2:
                 data = self.vault_client.secrets.kv.v2.read_secret_version(
                     path=path, mount_point=self.envs.mount_point)
-                value = data.get("data", {}).get("data", {}).get(key)
-            else:
-                raise RuntimeError(
-                    "Wrong KV Version specified, either v1 or v2")
+                return data.get("data", {}).get("data", {}).get(key)
+            raise RuntimeError("Wrong KV Version specified, either v1 or v2")
         except AttributeError as ex:
             raise RuntimeError(
                 "Vault not configured correctly,"
                 f"check VAULT_ADDR and VAULT_TOKEN env variables. {ex}"
             )
-        return value
 
     def _vault_write_by_path(self, path: str, value: dict):
         """Wirite value to Vault"""
@@ -271,10 +277,10 @@ class HelmVault(object):
             )
 
         try:
-            if self.envs.kvversion == "v1":
+            if self.envs.kvversion == KVVersion.v1:
                 self.vault_client.write(
                     path, mount_point=self.envs.mount_point, **value)
-            elif self.envs.kvversion == "v2":
+            elif self.envs.kvversion == KVVersion.v2:
                 self.vault_client.secrets.kv.v2.create_or_update_secret(
                     path=path,
                     secret=value,
@@ -401,8 +407,8 @@ def parse_args():
     parent_parser.add_argument(
         "-kv",
         "--kvversion",
-        choices=['v1', 'v2'],
-        type=str,
+        choices=list(KVVersion),
+        type=KVVersion,
         help="The KV Version (v1, v2) Default: \"v2\""
     )
 

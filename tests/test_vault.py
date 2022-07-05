@@ -159,9 +159,17 @@ def test_install():
 
 
 def test_config():
+    os.environ["HELM_VAULT_KVVERSION"] = "v1"
     parsed = vault.parse_args()
-    parser, _ = parsed.parse_known_args(
-        ['clean', '-f ./tests/test.yaml', "-v", "--environment", "test"]
-    )
+    parser, _ = parsed.parse_known_args([
+        'clean',
+        '-f',
+        './tests/test.yaml',
+        "-v",
+        "--environment",
+        "test"
+    ])
     r = vault.Config.create_from_env(parser)
     assert r.environment == "/test"
+    assert isinstance(r.kvversion, vault.KVVersion)
+    assert r.kvversion, vault.KVVersion.v1

@@ -165,7 +165,7 @@ Decrypted files have the suffix ".yaml.dec" by default
 |`HELM_VAULT_MOUNT_POINT`|`secret`|The default mountpoint used within Vault||
 |`HELM_VAULT_DELIMINATOR`|`changeme`|The value which will be searched for within YAML to prompt for encryption/decryption||
 |`HELM_VAULT_TEMPLATE`|`VAULT:`|Used for [Vault Path Templating](#vault-path-templating)||
-|`HELM_VAULT_KVVERSION`|`v1`|The K/V secret engine version within Vault||
+|`HELM_VAULT_KVVERSION`|`v2`|The K/V secret engine version within Vault||
 |`HELM_VAULT_EDITOR`| - Windows: `notepad` <br> - macOS/Linux: `vi`|The editor used when calling `helm vault edit`||
 
 #### More detailed information available below:
@@ -268,7 +268,7 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 |`-p`, `--path`|The Vault Path (secret mount location in Vault)|`secret/helm`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-mp`, `--mount-point`|The Vault Mount Point|`secret`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-t`, `--template`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v1`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
+|`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v2`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-v`, `--verbose`|Verbose output||`enc`, `dec`, `clean`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-s`, `--secret-file`|File containing secrets for input, rather than using stdin, must end in `.yaml.dec`||`enc`|
 |`-f`, `--file`|The specific YAML file to be deleted, without `.dec`||`clean`|
