@@ -13,9 +13,6 @@ import src.vault as vault
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml")
 CONTENT_TEST_YAML_DEC = Path("./tests/data/test.yaml.dec")
 
-PATH_TEST_FILE = "./tests/data/test.yaml"
-PATH_TEST_YAML_DEC = "./tests/data/test.yaml.dec"
-
 
 @pytest.fixture
 def tmp_path_data(tmp_path) -> PosixPath:
@@ -26,10 +23,12 @@ def tmp_path_data(tmp_path) -> PosixPath:
     return tmp_path
 
 
-def test_load_yaml():
+def test_load_yaml(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(
-        *parsed.parse_known_args(["enc", "-f", PATH_TEST_FILE])
+        *parsed.parse_known_args([
+            "enc", "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+        ])
     )
     data = obj._load_yaml()
     assert isinstance(data, dict)
@@ -150,7 +149,7 @@ def test_clean(tmp_path_data: PosixPath):
     subprocess.run("helm", shell=True),
     reason="No way of testing without Helm"
 )
-def test_install():
+def test_install(tmp_path_data: PosixPath):
     os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = []
     output = []
@@ -169,7 +168,7 @@ def test_install():
         "--namespace",
         "nextcloud",
         "-f",
-        PATH_TEST_FILE,
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
         "--dry-run",
     ])
 
