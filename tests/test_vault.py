@@ -3,15 +3,27 @@
 import os
 import subprocess
 from shutil import copyfile
-from pathlib import PosixPath
+from pathlib import Path, PosixPath
 
 import pytest
 
 import src.vault as vault
 
 
+CONTENT_TEST_YAML = Path("./tests/data/test.yaml")
+CONTENT_TEST_YAML_DEC = Path("./tests/data/test.yaml.dec")
+
 PATH_TEST_FILE = "./tests/data/test.yaml"
 PATH_TEST_YAML_DEC = "./tests/data/test.yaml.dec"
+
+
+@pytest.fixture
+def tmp_path_data(tmp_path) -> PosixPath:
+    copyfile(
+        CONTENT_TEST_YAML, tmp_path.joinpath(CONTENT_TEST_YAML.name))
+    copyfile(
+        CONTENT_TEST_YAML_DEC, tmp_path.joinpath(CONTENT_TEST_YAML_DEC.name))
+    return tmp_path
 
 
 def test_load_yaml():
@@ -23,21 +35,21 @@ def test_load_yaml():
     assert isinstance(data, dict)
 
 
-def test_parser():
-    copyfile(PATH_TEST_FILE, "./tests/test.yaml.bak")
+def test_parser(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
-    parser = parsed.parse_known_args(["clean", "-f", PATH_TEST_FILE])
+    parser = parsed.parse_known_args([
+        "clean",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+    ])
     assert(parser)
-    copyfile("./tests/test.yaml.bak", PATH_TEST_FILE)
-    os.remove("./tests/test.yaml.bak")
 
 
 def filecheckfunc():
     raise FileNotFoundError
 
 
-def test_enc():
-    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+def test_enc(tmp_path_data: PosixPath, capsys):
     input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
     output = []
 
@@ -45,20 +57,21 @@ def test_enc():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s: output.append(s)
 
-    vault.main(["enc", PATH_TEST_FILE])
+    vault.main(["enc", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))])
+
+    output.append(capsys.readouterr().out)
 
     assert output == [
         'Input a value for nextcloud.password: ',
         'Input a value for /secret/testdata.user: ',
         'Input a value for /secret/testdata.password: ',
         'Input a value for mariadb/db.password: ',
-        'Done Encription',
+        'Done Encription\n',
     ]
 
 
-def test_enc_with_env():
+def test_enc_with_env(tmp_path_data: PosixPath, capsys):
     os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
     output = []
@@ -67,27 +80,37 @@ def test_enc_with_env():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s: output.append(s)
 
-    vault.main(['enc', PATH_TEST_FILE, '-e', 'test'])
+    vault.main([
+        'enc',
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+        '-e',
+        'test'
+    ])
+
+    output.append(capsys.readouterr().out)
 
     assert output == [
         'Input a value for nextcloud.password: ',
         'Input a value for /secret/testdata.user: ',
         'Input a value for /secret/test/testdata.password: ',
         'Input a value for mariadb/db.password: ',
-        'Done Encription',
+        'Done Encription\n',
     ]
 
 
 def test_refuse_enc_from_file_with_bad_name():
     with pytest.raises(Exception) as e:
-        vault.main(['enc', PATH_TEST_FILE, '-s', './tests/test.yaml.bad'])
+        vault.main([
+            'enc',
+            str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+            '-s',
+            './tests/test.yaml.bad'
+        ])
         assert "ERROR: Secret file name must end with" in str(e.value)
 
 
-def test_dec():
-    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+def test_dec(tmp_path_data: PosixPath, capsys):
     input_values = ["adfs1", "adfs2"]
     output = []
 
@@ -95,34 +118,31 @@ def test_dec():
         output.append(s)
         return input_values.pop(0)
     vault.input = mock_input
-    vault.print = lambda s, *args: output.append(s)
 
-    vault.main(['dec', PATH_TEST_FILE])
+    vault.main(['dec', str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))])
+    output.append(capsys.readouterr().out)
 
     assert output == [
-        'Done Decrypting',
+        'Done Decrypting\n',
     ]
 
 
 def test_clean_dec_not_exist(tmp_path: PosixPath):
-    os.environ["HELM_VAULT_KVVERSION"] = "v2"
     with pytest.raises(FileNotFoundError):
         vault.main([
             "clean",
             "-v",
             "-f",
-            str(tmp_path.joinpath("test.yaml"))
+            str(tmp_path.joinpath("test-not-exist.yaml"))
         ])
 
 
-def test_clean(tmp_path: PosixPath):
-    os.environ["HELM_VAULT_KVVERSION"] = "v2"
-    copyfile(PATH_TEST_YAML_DEC, tmp_path.joinpath("test.yaml.dec"))
+def test_clean(tmp_path_data: PosixPath):
     vault.main([
         "clean",
         "-v",
         "-f",
-        str(tmp_path.joinpath("test.yaml"))
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
     ])
 
 
