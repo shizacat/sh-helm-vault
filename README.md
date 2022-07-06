@@ -264,10 +264,9 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 |`-t`, `--template`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v2`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-v`, `--verbose`|Verbose output||`enc`, `dec`, `clean`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-s`, `--secret-file`|File containing secrets for input, rather than using stdin, must end in `.yaml.dec`||`enc`|
 |`-f`, `--file`|The specific YAML file to be deleted, without `.dec`||`clean`|
-|`-ed`, `--editor`|Editor name|Windows: `notepad`, macOS/Linux: `vi`|`edit`|
 |`-f`, `--values`|The encrypted YAML file to decrypt on the fly||`install`, `template`, `upgrade`, `lint`, `diff`|
+|`-ed`, `--editor`|Editor name|Windows: `notepad`, macOS/Linux: `vi`|`edit`|
 |`-e`, `--environment`|Environment that secrets should be stored under||`enc`, `dec`, `clean`, `install`|
 
 
@@ -283,14 +282,6 @@ Input a value for nextcloud.password: asdf1
 Input a value for externalDatabase.user: asdf2
 Input a value for .mariadb.db.password: asdf3
 ```
-
-If you don't want to enter the secrets manually on stdin, you can pass a file containing the secrets. Copy `values.yaml` to `values.yaml.dec` and edit the file, replacing "changeme" (the deliminator) with the secret value. Then you can save the secret to vault by running: 
-
-```
-$ helm vault enc values.yaml -s values.yaml.dec
-```
-
-By default the name of the secret file has to end in `.yaml.dec` so you can add this extension to gitignore to prevent committing a secret to your git repo.
 
 In addition, you can namespace your secrets to a desired environment by using the `-e` flag.
 
@@ -355,7 +346,7 @@ The edit operation will decrypt the values.yaml file and open it in an editor.
 $ helm vault edit values.yaml
 ```
 
-This will read a value from $EDITOR, or be specified with the `-e, --editor` option, or will choose a default of `vi` for Linux/MacOS, and `notepad` for Windows.
+This will read a value from $HELM_VAULT_EDITOR, or be specified with the `-e, --editor` option, or will choose a default of `vi` for Linux/MacOS, and `notepad` for Windows.
 
 Note: This will save a `.dec` file that is not automatically cleaned up.
 
@@ -375,13 +366,15 @@ It is possible to setup vault's path inside helm chart like this
 key1: VAULT:helm1/test.key1
 key2: VAULT:/helm2/test.key2
 ```
-This mean that key1 will be storing into base_path/helm1/test (key1) and key2 into /helm2/test (key2). Where is helm2 is root path enabled via secrets enable. For example:
+This mean that key1 will be storing into base_path/helm1/test (key1) and key2 into /helm2/test (key2).
+Where is helm2 is root path enabled via secrets enable. For example:
 
 ```
 vault secrets enable  -path=helm2 kv-v2
 ```
 
-To override default value of template path pattern use **SECRET_TEMPLATE** variable. By default this value is VAULT: . This is mean that all keys with values like VAULT:something will be stored inside vault.
+To override default value of template path pattern use **SECRET_TEMPLATE** variable. By default this value is 'VAULT:'.
+This is mean that all keys with values like VAULT:something will be stored inside vault.
 
 
 ### Wrapper Examples
