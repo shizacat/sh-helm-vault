@@ -7,22 +7,13 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/context:python)
 [![CI](https://github.com/Just-Insane/helm-vault/actions/workflows/main.yml/badge.svg)](https://github.com/shizacat/helm-vault-new/actions/workflows/main.yml)
 
-
-
 # Helm-Vault
 
 Helm-Vault stores private data from YAML files in Hashicorp Vault. Helm-Vault should be used if you want to publicize your YAML configuration files, without worrying about leaking secret information.
 
-## Info
-
-It was taken from this project: https://github.com/Just-Insane/helm-vault.
-The work isn't complete.
-Goal, to make the code more supported.
-
 ## Table of Contents
 
 - [Helm-Vault](#helm-vault)
-  - [Info](#info)
   - [Table of Contents](#table-of-contents)
 - [About the Project](#about-the-project)
   - [Project Status](#project-status)
@@ -60,7 +51,10 @@ Goal, to make the code more supported.
 - [Contributing](#contributing)
 - [Further Reading](#further-reading)
 - [License](#license)
+- [Authors](#authors)
 - [Acknowledgments](#acknowledgments)
+  - [Step 2](#step-2)
+  - [Step 1](#step-1)
 
 # About the Project
 
@@ -530,15 +524,28 @@ We encourage public contributions! Please review [CONTRIBUTING.md](docs/CONTRIBU
 
 # License
 
-Copyright (c) 2019 Justin Gauthier
+Copyright (c) 2022 Alexey Matveev
 
 This project is licensed under GPLv3 - see [LICENSE.md](LICENSE.md) file for details.
 
 **[Back to top](#table-of-contents)**
 
+# Authors
+
+* **[Justin Gauthier](https://github.com/Just-Insane)**
+* **[Alexey Matveev](https://github.com/shizacat)**
+
+**[Back to top](#table-of-contents)**
+
 # Acknowledgments
 
-The idea for this project comes from [Helm-Secrets](https://github.com/futuresimple/helm-secrets)
+## Step 2
+The idea for this project comes from [helm-vault](https://github.com/Just-Insane/helm-vault).
+
+Goal, to make the code more supported.
+
+## Step 1
+The idea for this project (helm-vault) comes from [Helm-Secrets](https://github.com/futuresimple/helm-secrets).
 
 Special thanks to the [Python Discord](https://discord.gg/python) server.
 
