@@ -115,11 +115,11 @@ class HelmVault(object):
             return self._action_leftoevers()
 
     def _action_cleanup(self):
-        try:
+        if self.args.yaml_file:
             os.remove(self.decode_file)
             if self.args.verbose:
                 print(f"Deleted {self.decode_file}")
-        except AttributeError:
+        else:
             for fl in glob.glob("*.dec.yaml"):
                 os.remove(fl)
                 if self.args.verbose:
@@ -338,7 +338,9 @@ class HelmVault(object):
         return r[0], r[1]
 
     @property
-    def decode_file(self):
+    def decode_file(self) -> str:
+        if not self.args.yaml_file:
+            return ""
         return '.'.join(filter(None, [
             os.path.splitext(
                 os.path.split(self.args.yaml_file)[1]

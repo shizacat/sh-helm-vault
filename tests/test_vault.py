@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import glob
 import subprocess
 from shutil import copyfile
 from pathlib import Path, PosixPath
@@ -11,7 +12,7 @@ import src.vault as vault
 
 
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml")
-CONTENT_TEST_YAML_DEC = Path("./tests/data/test.yaml.dec")
+CONTENT_TEST_YAML_DEC = Path("./tests/data/test.dec.yaml")
 
 
 @pytest.fixture
@@ -143,6 +144,16 @@ def test_clean(tmp_path_data: PosixPath):
         "-f",
         str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
     ])
+
+
+def test_clean_without_f(tmp_path_data: PosixPath):
+    os.chdir(str(tmp_path_data))
+    assert len(glob.glob("*.dec.yaml")) == 1, "We should have files for delete"
+    vault.main([
+        "clean",
+        "-v",
+    ])
+    assert len(glob.glob("*.dec.yaml")) == 0
 
 
 @pytest.mark.skipif(
