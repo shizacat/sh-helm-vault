@@ -137,7 +137,7 @@ optional arguments:
 
 Any YAML file can be transparently "encrypted" as long as it has a deliminator for secret values.
 
-Decrypted files have the suffix ".yaml.dec" by default
+Decrypted files have the suffix ".dec.yaml" by default
 
 ### Environment Variables
 
@@ -249,7 +249,7 @@ Default when not set:
   dec           Decrypt file
   view          Print decrypted file
   edit          Edit file (decrypt before, manual cleanup)
-  clean         Delete *.yaml.dec files in directory (recursively)
+  clean         Delete *.dec.yaml files in directory (recursively)
 ```
 
 Each of these commands have their own help, referenced by `helm vault {enc,dec,clean,view,edit} --help`.
@@ -264,7 +264,7 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 |`-t`, `--template`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v2`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-v`, `--verbose`|Verbose output||`enc`, `dec`, `clean`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-f`, `--file`|The specific YAML file to be deleted, without `.dec`||`clean`|
+|`-f`, `--file`|The specific YAML file to be deleted, without `.dec.yaml`||`clean`|
 |`-f`, `--values`|The encrypted YAML file to decrypt on the fly||`install`, `template`, `upgrade`, `lint`, `diff`|
 |`-ed`, `--editor`|Editor name|Windows: `notepad`, macOS/Linux: `vi`|`edit`|
 |`-e`, `--environment`|Environment that secrets should be stored under||`enc`, `dec`, `clean`, `install`|
@@ -294,13 +294,13 @@ Input a value for mariadb.db.password: asdf3
 
 #### Decrypt
 
-The decrypt operation decrypts a values.yaml file and saves the decrypted result in values.yaml.dec:
+The decrypt operation decrypts a values.yaml file and saves the decrypted result in values.dec.yaml:
 
 ```
 $ helm vault dec values.yaml
 ```
 
-The values.yaml.dec file:
+The values.dec.yaml file:
 ```
 ...
 nextcloud:
@@ -321,7 +321,7 @@ parameters
 
 If leveraging environment specific secrets, you can decrypt the desired environment by specifying with the `-e` flag.
 
-Doing so will result in a decrypted file that is stored as `my_file.yaml.{environment}.dec`
+Doing so will result in a decrypted file that is stored as `my_file.{environment}.dec.yaml`
 
 For example
 
@@ -329,7 +329,7 @@ For example
 $ helm vault dec values.yaml -e prod
 ```
 
-Will result in your production environment secrets being dumped into a file named `values.yaml.prod.dec`
+Will result in your production environment secrets being dumped into a file named `values.prod.dec.yaml`
 
 #### View
 
@@ -348,7 +348,7 @@ $ helm vault edit values.yaml
 
 This will read a value from $HELM_VAULT_EDITOR, or be specified with the `-e, --editor` option, or will choose a default of `vi` for Linux/MacOS, and `notepad` for Windows.
 
-Note: This will save a `.dec` file that is not automatically cleaned up.
+Note: This will save a `.dec.yaml` file that is not automatically cleaned up.
 
 #### Clean
 

@@ -201,7 +201,7 @@ def test_decode_file_1():
             "enc", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.yaml.dec"
+    assert obj.decode_file == "test.dec.yaml"
 
 
 def test_decode_file_2_env():
@@ -211,4 +211,4 @@ def test_decode_file_2_env():
             "enc", "-e", "prod", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.yaml.prod.dec"
+    assert obj.decode_file == "test.prod.dec.yaml"

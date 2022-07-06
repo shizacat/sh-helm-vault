@@ -120,7 +120,7 @@ class HelmVault(object):
             if self.args.verbose:
                 print(f"Deleted {self.decode_file}")
         except AttributeError:
-            for fl in glob.glob("*.dec"):
+            for fl in glob.glob("*.dec.yaml"):
                 os.remove(fl)
                 if self.args.verbose:
                     print(f"Deleted {fl}")
@@ -340,9 +340,11 @@ class HelmVault(object):
     @property
     def decode_file(self):
         return '.'.join(filter(None, [
-            self.args.yaml_file,
+            os.path.splitext(
+                os.path.split(self.args.yaml_file)[1]
+            )[0],
             self.envs.environment.replace("/", ""),
-            'dec'
+            'dec.yaml'
         ]))
 
 
