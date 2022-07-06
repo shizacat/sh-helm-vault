@@ -192,3 +192,23 @@ def test_config():
     assert r.environment == "/test"
     assert isinstance(r.kvversion, vault.KVVersion)
     assert r.kvversion, vault.KVVersion.v1
+
+
+def test_decode_file_1():
+    parsed = vault.parse_args()
+    obj = vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-f", "test.yaml"
+        ])
+    )
+    assert obj.decode_file == "test.yaml.dec"
+
+
+def test_decode_file_2_env():
+    parsed = vault.parse_args()
+    obj = vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-e", "prod", "-f", "test.yaml"
+        ])
+    )
+    assert obj.decode_file == "test.yaml.prod.dec"

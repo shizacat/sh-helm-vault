@@ -172,17 +172,6 @@ class HelmVault(object):
         with open(self.args.yaml_file) as filepath:
             return self.yaml.load(filepath)
 
-    # def _load_secret(self):
-    #     if (
-    #         self.args.secret_file and
-    #         not re.search(r'\.yaml\.dec$', self.args.secret_file)
-    #     ):
-    #         raise RuntimeError(
-    #             "ERROR: Secret file name must end with \".yaml.dec\"."
-    #             f" {self.args.secret_file} was given instead."
-    #         )
-    #     return self.yaml.load(self.args.secret_file)
-
     def _json_walker(
         self, data, process: Callable[[Any], Any], is_root: bool = False
     ):
@@ -351,7 +340,10 @@ class HelmVault(object):
     @property
     def decode_file(self):
         return '.'.join(filter(None, [
-            self.args.yaml_file, self.envs.environment, 'dec']))
+            self.args.yaml_file,
+            self.envs.environment.replace("/", ""),
+            'dec'
+        ]))
 
 
 def parse_args():
@@ -440,16 +432,10 @@ def parse_args():
     # ----------------
 
     # Encrypt help
-    encrypt = subparsers.add_parser(
+    subparsers.add_parser(
         "enc",
         help="Parse a YAML file and store user entered data in Vault",
         parents=[pp_verbose, parent_parser, pp_yaml_file, pp_env]
-    )
-    encrypt.add_argument(
-        "-s",
-        "--secret-file",
-        type=str,
-        help="File containing the secret for input. Must end in .yaml.dec"
     )
 
     # Decrypt help
