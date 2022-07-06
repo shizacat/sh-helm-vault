@@ -1,11 +1,14 @@
 # CHANGELOG.md
 
-## 1.0.0 (RC)
+## 1.0.0
 
 ### Changed
 - Change class Envs to Config
-- Rename enviroment variable: DELIMINATOR, VAULT_TEMPLATE
+- Rename environment variable: DELIMINATOR, VAULT_TEMPLATE
 - Rename arguments: -vmp, --vault-mount-path; vault-template
+- Changed suffix name for files after decryption, from .dec to .dec.yaml
+- All environment variables nas common prefix
+- All code in one main class
 
 
 ## 0.3.0 (2021-03-17)
