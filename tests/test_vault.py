@@ -11,8 +11,8 @@ import pytest
 import src.vault as vault
 
 
-CONTENT_TEST_YAML = Path("./tests/data/test.yaml")
-CONTENT_TEST_YAML_DEC = Path("./tests/data/test.dec.yaml")
+CONTENT_TEST_YAML = Path("./tests/data/test.yaml").resolve()
+CONTENT_TEST_YAML_DEC = Path("./tests/data/test.dec.yaml").resolve()
 
 
 @pytest.fixture
@@ -173,9 +173,8 @@ def test_install(tmp_path_data: PosixPath):
 
     vault.main([
         'install',
-        "stable/nextcloud",
-        "--name",
         "nextcloud",
+        "nextcloud/nextcloud",
         "--namespace",
         "nextcloud",
         "-f",
