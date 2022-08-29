@@ -24,6 +24,40 @@ def tmp_path_data(tmp_path) -> PosixPath:
     return tmp_path
 
 
+def test__split_path():
+    parsed = vault.parse_args()
+    obj = vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-f", "test.yaml"
+        ])
+    )
+    list_paths_good = [
+        # request: str, answer: Tuple[str, str]
+        (
+            "/test/test..path/service.filename..pub",
+            ('/test/test.path/service', 'filename.pub')
+        ),
+        (
+            "/check/service.key",
+            ("/check/service", "key")
+        )
+    ]
+    list_paths_bad = [
+        # str
+        "/check",
+        "/check.",
+        "/check.key.key2"
+    ]
+    for request, response in list_paths_good:
+        r = obj._split_path(request)
+        assert response, r
+
+    for request in list_paths_bad:
+        with pytest.raises(ValueError):
+            r = obj._split_path(request)
+            print(r)
+
+
 def test_load_yaml(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(

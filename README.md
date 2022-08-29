@@ -366,8 +366,10 @@ It is possible to setup vault's path inside helm chart like this
 ```
 key1: VAULT:helm1/test.key1
 key2: VAULT:/helm2/test.key2
+key_filename.txt: VAULT:/helm2/test.key_filename..txt
 ```
 This mean that key1 will be storing into base_path/helm1/test (key1) and key2 into /helm2/test (key2).
+If you need the dot in path or key, you can double it, example: key_filename.txt.
 Where is helm2 is root path enabled via secrets enable. For example:
 
 ```
