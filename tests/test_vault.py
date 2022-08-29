@@ -194,7 +194,7 @@ def test_decode_file_2_env():
 
 
 @pytest.mark.skipif(
-    subprocess.run("helm", shell=True).returncode,
+    subprocess.run("helm", shell=True, capture_output=True).returncode,
     reason="No way of testing without Helm"
 )
 def test_template(tmp_path_data: PosixPath):
@@ -223,11 +223,3 @@ def test_template(tmp_path_data: PosixPath):
     assert output == [
         'Done Decrypting',
     ]
-
-
-@pytest.mark.skipif(
-    subprocess.run("helm", shell=True).returncode,
-    reason="No way of testing without Helm"
-)
-def test_check_helm_exit_code_when_error(tmp_path_data: PosixPath):
-    subprocess.run("helm", shell=True).returncode,

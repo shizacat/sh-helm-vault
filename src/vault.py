@@ -534,5 +534,6 @@ if __name__ == "__main__":
         main()
     except Exception as ex:
         print(f"ERROR: {ex}")
+        sys.exit(1)
     except SystemExit as ex:
         sys.exit(ex.code)

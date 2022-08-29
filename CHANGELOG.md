@@ -4,6 +4,7 @@
 
 ### Fix:
 - Test with helm, test_install and rename to test_template.
+- Exit code return, when raise exception
 
 ## 1.0.0
 
