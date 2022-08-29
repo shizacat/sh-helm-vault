@@ -1,7 +1,8 @@
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/helm-vault-new) 
 
 [![License](https://img.shields.io/github/license/Just-Insane/helm-vault.svg)](https://github.com/shizacat/helm-vault-new/blob/master/LICENSE)
-[![Current Release](https://img.shields.io/github/release/Just-Insane/helm-vault.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
+[![Current Release](https://img.shields.io/github/v/release/shizacat/helm-vault-new.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
+
 [![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/context:python)
