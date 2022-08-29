@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## RC
+
+### Fix:
+- Test with helm, test_install.
+
 ## 1.0.0
 
 ### Changed
