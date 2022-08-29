@@ -3,7 +3,7 @@
 ## RC
 
 ### Fix:
-- Test with helm, test_install.
+- Test with helm, test_install and rename to test_template.
 
 ## 1.0.0
 

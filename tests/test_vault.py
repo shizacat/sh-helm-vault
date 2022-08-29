@@ -197,7 +197,7 @@ def test_decode_file_2_env():
     subprocess.run("helm", shell=True).returncode,
     reason="No way of testing without Helm"
 )
-def test_install(tmp_path_data: PosixPath):
+def test_template(tmp_path_data: PosixPath):
     os.environ["HELM_VAULT_KVVERSION"] = "v2"
     input_values = []
     output = []
@@ -209,7 +209,7 @@ def test_install(tmp_path_data: PosixPath):
     vault.print = lambda s: output.append(s)
 
     vault.main([
-        'install',
+        'template',
         "nextcloud",
         "nextcloud/nextcloud",
         "--namespace",
@@ -223,3 +223,11 @@ def test_install(tmp_path_data: PosixPath):
     assert output == [
         'Done Decrypting',
     ]
+
+
+@pytest.mark.skipif(
+    subprocess.run("helm", shell=True).returncode,
+    reason="No way of testing without Helm"
+)
+def test_check_helm_exit_code_when_error(tmp_path_data: PosixPath):
+    subprocess.run("helm", shell=True).returncode,
