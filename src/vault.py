@@ -327,14 +327,28 @@ class HelmVault(object):
 
     def _split_path(self, path: str) -> Tuple[str, str]:
         """
+        Split only one symvol, if it double then will be skip
+
         Return
             path, key
             where:
                 key is name of field in Vault
         """
-        r = path.split(self.SPLITER_KEY)
-        if len(r) != 2:
+        split_index = len(path) - 2  # from zero, and last - 1
+        r = None
+        while split_index - 1:
+            if path[split_index] == self.SPLITER_KEY:
+                if path[split_index - 1] == self.SPLITER_KEY:
+                    split_index = split_index - 1
+                else:
+                    if r is not None:
+                        raise ValueError(f"Wrong format path: {path}")
+                    r = [path[:split_index], path[split_index + 1:]]
+            split_index = split_index - 1
+        if r is None:
             raise ValueError(f"Wrong format path: {path}")
+        r[0] = r[0].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        r[1] = r[1].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
         return r[0], r[1]
 
     @property
