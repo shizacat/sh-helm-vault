@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## RC
+## 1.0.1
 
 ### Fix:
 - Test with helm, test_install and rename to test_template.
