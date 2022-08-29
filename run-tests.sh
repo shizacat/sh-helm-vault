@@ -27,5 +27,5 @@ while STATUS=$(getContainerHealth helm-vault); [ "$STATUS" != '"healthy"' ]; do
 done
 printf $'\n'
 
-# run tests
+# run tests. --cov-report html:cov_html
 pytest --cov=src/ tests/ $@
