@@ -156,37 +156,6 @@ def test_clean_without_f(tmp_path_data: PosixPath):
     assert len(glob.glob("*.dec.yaml")) == 0
 
 
-@pytest.mark.skipif(
-    subprocess.run("helm", shell=True),
-    reason="No way of testing without Helm"
-)
-def test_install(tmp_path_data: PosixPath):
-    os.environ["HELM_VAULT_KVVERSION"] = "v2"
-    input_values = []
-    output = []
-
-    def mock_input(s):
-        output.append(s)
-        return input_values.pop(0)
-    vault.input = mock_input
-    vault.print = lambda s: output.append(s)
-
-    vault.main([
-        'install',
-        "nextcloud",
-        "nextcloud/nextcloud",
-        "--namespace",
-        "nextcloud",
-        "-f",
-        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
-        "--dry-run",
-    ])
-
-    assert output == [
-        'NAME:   nextcloud',
-    ]
-
-
 def test_config():
     os.environ["HELM_VAULT_KVVERSION"] = "v1"
     parsed = vault.parse_args()
@@ -222,3 +191,35 @@ def test_decode_file_2_env():
         ])
     )
     assert obj.decode_file == "test.prod.dec.yaml"
+
+
+@pytest.mark.skipif(
+    subprocess.run("helm", shell=True, capture_output=True).returncode,
+    reason="No way of testing without Helm"
+)
+def test_template(tmp_path_data: PosixPath):
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+    input_values = []
+    output = []
+
+    def mock_input(s):
+        output.append(s)
+        return input_values.pop(0)
+    vault.input = mock_input
+    vault.print = lambda s: output.append(s)
+
+    vault.main([
+        'template',
+        "nextcloud",
+        "nextcloud/nextcloud",
+        "--namespace",
+        "nextcloud",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+        "--dry-run",
+        "--debug",
+    ])
+
+    assert output == [
+        'Done Decrypting',
+    ]
