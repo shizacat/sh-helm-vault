@@ -1,6 +1,5 @@
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/helm-vault-new) 
 
-[![License](https://img.shields.io/github/license/shizacat/helm-vault-new.svg)](https://github.com/shizacat/helm-vault-new/blob/master/LICENSE)
 [![Current Release](https://img.shields.io/github/v/release/shizacat/helm-vault-new.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
 
 [![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
