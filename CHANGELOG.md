@@ -1,6 +1,6 @@
 # CHANGELOG.md
 
-## RC
+## 1.1.0
 
 ### Feature
 - Was is added support the dot in path or key.

@@ -1,5 +1,5 @@
 name: "vault"
-version: "1.0.1"
+version: "1.1.0"
 usage: "Store secrets in Hashicorp Vault"
 description: |-
   Helm plugin for storing secrets in HashiCorp Vault
