@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vault-helm-plugin"
+dynamic = ["version"]
+authors = [
+    {name = "Alexey Matveev", email = "alekseymatveev439@gmail.com"},
+    {name = "Just-Insane", email = "justin@justin-tech.com"}
+]
+description = "Helm plugin for storing secrets in HashiCorp Vault"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "GPLv3"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "ruamel.yaml",
+    "hvac",
+]
+
+[project.urls]
+Documentation = "https://github.com/shizacat/helm-vault-new"
+repository = "https://github.com/shizacat/helm-vault-new"
+
+[tool.hatch.version]
+path = "src/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "tests",
+  "docs",
+]
+include = ["src"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.flake8]
+max-line-length = 80
+exclude = [
+    "tests"
+]
