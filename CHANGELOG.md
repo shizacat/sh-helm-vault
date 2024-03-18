@@ -4,6 +4,7 @@
 
 ### Changed
 - Options: '-f', '--values', '--files' can be specified more than once.
+- Rename plugin to 'vault-sh'
 
 
 ## 1.1.0

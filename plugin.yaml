@@ -1,7 +1,7 @@
-name: "vault"
+name: "vault-sh"
 version: "1.2.0"
 usage: "Store secrets in Hashicorp Vault"
 description: |-
-  Helm plugin for storing secrets in HashiCorp Vault
+  Helm plugin for storing secrets in HashiCorp Vault (Rev.Sh)
 command: "$HELM_PLUGIN_DIR/src/vault.py"
 ignoreFlags: false

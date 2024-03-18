@@ -82,7 +82,7 @@ The work isn't complete.
 
 ## Dependencies
 
-- [ ] Python 3.7+
+- [ ] Python 3.8+
 - [ ] pip3
 - [ ] Working Hashicorp Vault environment
 - [ ] Hashicorp Vault token
