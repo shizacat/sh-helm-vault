@@ -65,9 +65,9 @@ def test_load_yaml_multi(tmp_path_data: PosixPath):
             "enc", "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
         ])
     )
-    for data, filename in obj._load_yaml_multi():
+    for index, data in obj._load_yaml_multi():
         assert isinstance(data, dict)
-        assert filename, CONTENT_TEST_YAML.name
+        assert index == 0
 
 
 def test_parser(tmp_path_data: PosixPath):
@@ -208,24 +208,24 @@ def test_config():
     assert r.kvversion, vault.KVVersion.v1
 
 
-def test_decode_file_1():
+def test__get_decode_files_1():
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.dec.yaml"
+    assert obj._get_decode_files() == ["test.dec.yaml"]
 
 
-def test_decode_file_2_env():
+def test__get_decode_files_2_env():
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-e", "prod", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.prod.dec.yaml"
+    assert obj._get_decode_files() == ["test.prod.dec.yaml"]
 
 
 @pytest.mark.skipif(
