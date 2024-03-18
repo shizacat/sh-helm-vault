@@ -58,15 +58,16 @@ def test__split_path():
             print(r)
 
 
-def test_load_yaml(tmp_path_data: PosixPath):
+def test_load_yaml_multi(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
         ])
     )
-    data = obj._load_yaml()
-    assert isinstance(data, dict)
+    for index, data in obj._load_yaml_multi():
+        assert isinstance(data, dict)
+        assert index == 0
 
 
 def test_parser(tmp_path_data: PosixPath):
@@ -207,24 +208,24 @@ def test_config():
     assert r.kvversion, vault.KVVersion.v1
 
 
-def test_decode_file_1():
+def test__get_decode_files_1():
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.dec.yaml"
+    assert obj._get_decode_files() == ["test.dec.yaml"]
 
 
-def test_decode_file_2_env():
+def test__get_decode_files_2_env():
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-e", "prod", "-f", "test.yaml"
         ])
     )
-    assert obj.decode_file == "test.prod.dec.yaml"
+    assert obj._get_decode_files() == ["test.prod.dec.yaml"]
 
 
 @pytest.mark.skipif(

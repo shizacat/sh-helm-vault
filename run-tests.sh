@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# docker, podman
+CONTAINER_PROVIDER="podman"
+
 set -e
 
 export VAULT_ADDR="http://localhost:8200"
@@ -7,9 +10,9 @@ export VAULT_TOKEN="802e831f-bf5e-2740-d1f1-bbd936140e0b"
 # ---
 export HELM_VAULT_KVVERSION="v2"
 
-docker compose up -d 
+${CONTAINER_PROVIDER} compose up -d
 function getContainerHealth {
-    docker inspect --format "{{json .State.Health.Status }}" $1
+    ${CONTAINER_PROVIDER} inspect --format "{{json .State.Health.Status }}" $1
 }
 
 # check that vault is running

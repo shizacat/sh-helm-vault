@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 from enum import Enum
-from typing import Any, IO, Optional, Tuple, Callable
+from typing import Any, IO, Optional, Tuple, Callable, Iterator, Sequence, List
 from dataclasses import dataclass, fields
 
 import hvac
@@ -116,9 +116,10 @@ class HelmVault(object):
 
     def _action_cleanup(self):
         if self.args.yaml_file:
-            os.remove(self.decode_file)
-            if self.args.verbose:
-                print(f"Deleted {self.decode_file}")
+            for filepath in self._get_decode_files():
+                os.remove(filepath)
+                if self.args.verbose:
+                    print(f"Deleted {filepath}")
         else:
             for fl in glob.glob("*.dec.yaml"):
                 os.remove(fl)
@@ -126,21 +127,24 @@ class HelmVault(object):
                     print(f"Deleted {fl}")
 
     def _action_dec(self, device: Optional[IO[str]] = None):
-        data = self._load_yaml()
-        data = self._json_walker(data, self._process_yaml)
-        if device is not None:
-            self.yaml.dump(data, device)
-        else:
-            with open(self.decode_file, "w") as device:
+        for index, data in self._load_yaml_multi():
+            data = self._json_walker(data, self._process_yaml)
+            if device is not None:
                 self.yaml.dump(data, device)
+            else:
+                with open(
+                    self._get_decode_filename_by_index(index), "w"
+                ) as device:
+                    self.yaml.dump(data, device)
         print("Done Decrypting")
 
     def _action_enc(self):
-        self.__secrets = {}  # path: {key: value}
-        self._json_walker(self._load_yaml(), self._process_yaml_enc, True)
-        for path, secret in self.__secrets.items():
-            self._vault_write_by_path(path, secret)
-        self.__secrets = {}
+        for index, data in self._load_yaml_multi():
+            self.__secrets = {}  # path: {key: value}
+            self._json_walker(data, self._process_yaml_enc, True)
+            for path, secret in self.__secrets.items():
+                self._vault_write_by_path(path, secret)
+            self.__secrets = {}
         print("Done Encription")
 
     def _action_view(self):
@@ -148,13 +152,19 @@ class HelmVault(object):
 
     def _action_edit(self):
         self._action_dec()
-        os.system(f"{self.envs.editor} {self.decode_file}")
+        for filepath in self._get_decode_files():
+            os.system(f"{self.envs.editor} {filepath}")
 
     def _action_leftoevers(self):
         leftovers = ' '.join(self.leftovers)
 
         try:
-            cmd = f"helm {self.args.action} {leftovers} -f {self.decode_file}"
+            # Get all --value files
+            opt_values = ""
+            for index, _ in enumerate(self.args.yaml_file):
+                opt_values += f" -f {self._get_decode_filename_by_index(index)}"
+
+            cmd = f"helm {self.args.action} {leftovers} {opt_values}"
             if self.args.verbose:
                 print(f"About to execute command: {cmd}")
             subprocess.run(cmd, shell=True, check=True)
@@ -163,14 +173,15 @@ class HelmVault(object):
         finally:
             self._action_cleanup()
 
-    def _load_yaml(self):
-        """Load the YAML file
+    def _load_yaml_multi(self) -> Iterator[Tuple[Sequence, int]]:
+        """Load the YAML files
 
         Return
-            json object
+            Iterator: index in yaml_file, json object
         """
-        with open(self.args.yaml_file) as filepath:
-            return self.yaml.load(filepath)
+        for index, filepath in enumerate(self.args.yaml_file):
+            with open(filepath) as fd:
+                yield index, self.yaml.load(fd)
 
     def _json_walker(
         self, data, process: Callable[[Any], Any], is_root: bool = False
@@ -351,17 +362,36 @@ class HelmVault(object):
         r[1] = r[1].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
         return r[0], r[1]
 
-    @property
-    def decode_file(self) -> str:
-        if not self.args.yaml_file:
-            return ""
+    def _get_decode_filename_by_index(self, index: int) -> str:
+        """
+        Args
+            index (int): index of path into args.yaml_file
+        Return
+            filename for decode file
+        """
+        if index >= len(self.args.yaml_file):
+            raise ValueError(
+                f"Index {index} is out of range for {self.args.yaml_file}")
+
+        filename = os.path.split(self.args.yaml_file[index])[1]
+
         return '.'.join(filter(None, [
-            os.path.splitext(
-                os.path.split(self.args.yaml_file)[1]
-            )[0],
+            os.path.splitext(filename)[0],
             self.envs.environment.replace("/", ""),
             'dec.yaml'
         ]))
+
+    def _get_decode_files(self) -> List[str]:
+        """
+        Return
+            list of decode files
+        """
+        if not self.args.yaml_file:
+            return []
+        return [
+            self._get_decode_filename_by_index(index)
+            for index in range(len(self.args.yaml_file))
+        ]
 
 
 def parse_args():
@@ -432,13 +462,14 @@ def parse_args():
         "-f",
         "--values",
         type=str,
+        nargs="*",
         dest="yaml_file",
         help="The encrypted YAML file to decrypt on the fly"
     )
     # Common yaml_file
     pp_yaml_file = argparse.ArgumentParser(add_help=False)
     pp_yaml_file.add_argument(
-        "yaml_file", type=str, help="The YAML file to be worked on")
+        "yaml_file", type=str, nargs="*", help="The YAML file to be worked on")
     # Common environment
     pp_env = argparse.ArgumentParser(add_help=False)
     pp_env.add_argument(
@@ -473,6 +504,7 @@ def parse_args():
         "-f",
         "--file",
         type=str,
+        nargs="*",
         help="The specific YAML file to be deleted, without .dec",
         dest="yaml_file"
     )

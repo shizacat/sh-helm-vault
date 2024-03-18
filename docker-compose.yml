@@ -2,7 +2,7 @@ version: "3.5"
 services:
   vault:
     container_name: helm-vault
-    image: vault
+    image: vault:1.13.3
     network_mode: bridge
     ports:
       - 8200:8200
