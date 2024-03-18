@@ -18,7 +18,7 @@ Helm-Vault stores private data from YAML files in Hashicorp Vault. Helm-Vault sh
 - [Getting Started](#getting-started)
   - [Dependencies](#dependencies)
   - [Installation](#installation)
-    - [Using Helm plugin manager (> 2.3.x)](#using-helm-plugin-manager--23x)
+    - [Using Helm plugin manager (\> 2.3.x)](#using-helm-plugin-manager--23x)
   - [Usage and Examples](#usage-and-examples)
     - [Environment Variables](#environment-variables)
       - [Variables for configure the library hvac (Vault client).](#variables-for-configure-the-library-hvac-vault-client)
@@ -262,8 +262,8 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 |`-t`, `--template`|Substring with path to vault key instead of deliminator.|`VAULT:`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-kv`, `--kvversion`|The version of the KV secrets engine in Vault|`v2`|`enc`, `dec`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
 |`-v`, `--verbose`|Verbose output||`enc`, `dec`, `clean`, `view`, `edit`, `install`, `template`, `upgrade`, `lint`, `diff`|
-|`-f`, `--file`|The specific YAML file to be deleted, without `.dec.yaml`||`clean`|
-|`-f`, `--values`|The encrypted YAML file to decrypt on the fly||`install`, `template`, `upgrade`, `lint`, `diff`|
+|`-f`, `--file`|The specific YAML file to be deleted, without `.dec.yaml`. This option can be specified more than once.||`clean`|
+|`-f`, `--values`|The encrypted YAML file to decrypt on the fly. This option can be specified more than once.||`install`, `template`, `upgrade`, `lint`, `diff`|
 |`-ed`, `--editor`|Editor name|Windows: `notepad`, macOS/Linux: `vi`|`edit`|
 |`-e`, `--environment`|Environment that secrets should be stored under||`enc`, `dec`, `clean`, `install`|
 

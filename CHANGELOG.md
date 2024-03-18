@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 1.2.0
+
+### Changed
+- Options: '-f', '--values', '--files' can be specified more than once.
+
+
 ## 1.1.0
 
 ### Feature
