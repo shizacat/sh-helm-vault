@@ -26,7 +26,7 @@ jobs:
     
     services:
       vault:
-        image: vault
+        image: vault:1.13.3
         ports:
           - 8200:8200
         env:
