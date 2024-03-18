@@ -58,15 +58,16 @@ def test__split_path():
             print(r)
 
 
-def test_load_yaml(tmp_path_data: PosixPath):
+def test_load_yaml_multi(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
             "enc", "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
         ])
     )
-    data = obj._load_yaml()
-    assert isinstance(data, dict)
+    for data, filename in obj._load_yaml_multi():
+        assert isinstance(data, dict)
+        assert filename, CONTENT_TEST_YAML.name
 
 
 def test_parser(tmp_path_data: PosixPath):

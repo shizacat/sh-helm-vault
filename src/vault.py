@@ -7,7 +7,7 @@ import argparse
 import platform
 import subprocess
 from enum import Enum
-from typing import Any, IO, Optional, Tuple, Callable
+from typing import Any, IO, Optional, Tuple, Callable, Iterator, Sequence
 from dataclasses import dataclass, fields
 
 import hvac
@@ -163,14 +163,15 @@ class HelmVault(object):
         finally:
             self._action_cleanup()
 
-    def _load_yaml(self):
-        """Load the YAML file
+    def _load_yaml_multi(self) -> Iterator[Tuple[Sequence, str]]:
+        """Load the YAML files
 
         Return
-            json object
+            Iterator: json object, file name
         """
-        with open(self.args.yaml_file) as filepath:
-            return self.yaml.load(filepath)
+        for filepath in self.args.yaml_file:
+            with open(filepath) as fd:
+                yield self.yaml.load(fd), os.path.split(filepath)[1]
 
     def _json_walker(
         self, data, process: Callable[[Any], Any], is_root: bool = False
@@ -432,13 +433,14 @@ def parse_args():
         "-f",
         "--values",
         type=str,
+        nargs="*",
         dest="yaml_file",
         help="The encrypted YAML file to decrypt on the fly"
     )
     # Common yaml_file
     pp_yaml_file = argparse.ArgumentParser(add_help=False)
     pp_yaml_file.add_argument(
-        "yaml_file", type=str, help="The YAML file to be worked on")
+        "yaml_file", type=str, nargs="*", help="The YAML file to be worked on")
     # Common environment
     pp_env = argparse.ArgumentParser(add_help=False)
     pp_env.add_argument(
