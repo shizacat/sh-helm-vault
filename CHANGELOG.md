@@ -6,6 +6,7 @@
 - Options: '-f', '--values', '--files' can be specified more than once.
 - Rename plugin to 'vault-sh'
 - For hvac was set 'raise_on_deleted_version' to True
+- Drop support python 3.7
 
 
 ## 1.1.0
