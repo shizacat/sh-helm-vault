@@ -256,7 +256,10 @@ class HelmVault(object):
                 return data.get("data", {}).get(key)
             if self.envs.kvversion == KVVersion.v2:
                 data = self.vault_client.secrets.kv.v2.read_secret_version(
-                    path=path, mount_point=self.envs.mount_point)
+                    path=path,
+                    mount_point=self.envs.mount_point,
+                    raise_on_deleted_version=True,
+                )
                 return data.get("data", {}).get("data", {}).get(key)
             raise RuntimeError("Wrong KV Version specified, either v1 or v2")
         except AttributeError as ex:
