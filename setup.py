@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
    name='vault',
-   version='1.0.1',
+   version='1.2.0',
    description='Helm plugin for storing secrets in HashiCorp Vault',
    author='Just-Insane',
    author_email='justin@justin-tech.com',
