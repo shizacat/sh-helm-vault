@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.2.1
+- return name of plugin to 'vault'
+
+
 ## 1.2.0
 
 ### Changed
