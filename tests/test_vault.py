@@ -12,6 +12,7 @@ import src.vault as vault
 
 
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml").resolve()
+CONTENT_TEST_YAML2 = Path("./tests/data/test2.yaml").resolve()
 CONTENT_TEST_YAML_DEC = Path("./tests/data/test.dec.yaml").resolve()
 
 
@@ -19,6 +20,8 @@ CONTENT_TEST_YAML_DEC = Path("./tests/data/test.dec.yaml").resolve()
 def tmp_path_data(tmp_path) -> PosixPath:
     copyfile(
         CONTENT_TEST_YAML, tmp_path.joinpath(CONTENT_TEST_YAML.name))
+    copyfile(
+        CONTENT_TEST_YAML2, tmp_path.joinpath(CONTENT_TEST_YAML2.name))
     copyfile(
         CONTENT_TEST_YAML_DEC, tmp_path.joinpath(CONTENT_TEST_YAML_DEC.name))
     return tmp_path
@@ -62,12 +65,16 @@ def test_load_yaml_multi(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(
         *parsed.parse_known_args([
-            "enc", "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+            "enc",
+            "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+            "-f", str(tmp_path_data.joinpath(CONTENT_TEST_YAML2.name))
         ])
     )
+    r = []
     for index, data in obj._load_yaml_multi():
+        r.append((index, data))
         assert isinstance(data, dict)
-        assert index == 0
+    assert len(r) == 2
 
 
 def test_parser(tmp_path_data: PosixPath):
@@ -75,9 +82,22 @@ def test_parser(tmp_path_data: PosixPath):
     parser = parsed.parse_known_args([
         "clean",
         "-f",
-        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
     ])
-    assert(parser)
+    assert parser
+
+
+def test_parser_multi(tmp_path_data: PosixPath):
+    parsed = vault.parse_args()
+    parser = parsed.parse_known_args([
+        "clean",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML2.name)),
+    ])
+    assert parser
+    assert len(parser[0].yaml_file) == 2
 
 
 def filecheckfunc():
@@ -93,7 +113,11 @@ def test_enc(tmp_path_data: PosixPath, capsys):
         return input_values.pop(0)
     vault.input = mock_input
 
-    vault.main(["enc", str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))])
+    vault.main([
+        "enc",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+    ])
 
     output.append(capsys.readouterr().out)
 
@@ -118,6 +142,7 @@ def test_enc_with_env(tmp_path_data: PosixPath, capsys):
 
     vault.main([
         'enc',
+        "-f",
         str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
         '-e',
         'test'
@@ -154,7 +179,11 @@ def test_dec(tmp_path_data: PosixPath, capsys):
         return input_values.pop(0)
     vault.input = mock_input
 
-    vault.main(['dec', str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))])
+    vault.main([
+        'dec',
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+    ])
     output.append(capsys.readouterr().out)
 
     assert output == [

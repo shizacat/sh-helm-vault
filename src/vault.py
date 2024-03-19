@@ -134,8 +134,8 @@ class HelmVault(object):
             else:
                 with open(
                     self._get_decode_filename_by_index(index), "w"
-                ) as device:
-                    self.yaml.dump(data, device)
+                ) as fd:
+                    self.yaml.dump(data, fd)
         print("Done Decrypting")
 
     def _action_enc(self):
@@ -465,14 +465,18 @@ def parse_args():
         "-f",
         "--values",
         type=str,
-        nargs="*",
+        action="append",
         dest="yaml_file",
         help="The encrypted YAML file to decrypt on the fly"
     )
     # Common yaml_file
     pp_yaml_file = argparse.ArgumentParser(add_help=False)
     pp_yaml_file.add_argument(
-        "yaml_file", type=str, nargs="*", help="The YAML file to be worked on")
+        "yaml_file",
+        type=str,
+        action="append",
+        help="The YAML file to be worked on"
+    )
     # Common environment
     pp_env = argparse.ArgumentParser(add_help=False)
     pp_env.add_argument(
@@ -487,14 +491,14 @@ def parse_args():
     subparsers.add_parser(
         "enc",
         help="Parse a YAML file and store user entered data in Vault",
-        parents=[pp_verbose, parent_parser, pp_yaml_file, pp_env]
+        parents=[pp_verbose, parent_parser, pp_helm, pp_env]
     )
 
     # Decrypt help
     subparsers.add_parser(
         "dec",
         help="Parse a YAML file and retrieve values from Vault",
-        parents=[pp_verbose, parent_parser, pp_yaml_file, pp_env]
+        parents=[pp_verbose, parent_parser, pp_helm, pp_env]
     )
 
     # Clean help
@@ -507,7 +511,7 @@ def parse_args():
         "-f",
         "--file",
         type=str,
-        nargs="*",
+        action="append",
         help="The specific YAML file to be deleted, without .dec",
         dest="yaml_file"
     )
@@ -516,7 +520,7 @@ def parse_args():
     subparsers.add_parser(
         "view",
         help="View decrypted YAML file",
-        parents=[pp_verbose, parent_parser, pp_yaml_file]
+        parents=[pp_verbose, parent_parser, pp_helm]
     )
 
     # Edit Help

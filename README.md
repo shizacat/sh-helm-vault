@@ -275,7 +275,7 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 The encrypt operation encrypts a values.yaml file and saves the encrypted values in Vault:
 
 ```
-$ helm vault enc values.yaml
+$ helm vault enc -f values.yaml
 Input a value for nextcloud.password: asdf1
 Input a value for externalDatabase.user: asdf2
 Input a value for .mariadb.db.password: asdf3
@@ -284,7 +284,7 @@ Input a value for .mariadb.db.password: asdf3
 In addition, you can namespace your secrets to a desired environment by using the `-e` flag.
 
 ```
-helm vault enc values.yaml -e prod
+helm vault enc -f values.yaml -e prod
 Input a value for nextcloud.password: asdf1
 Input a value for externalDatabase.user: asdf2
 Input a value for mariadb.db.password: asdf3
@@ -295,7 +295,7 @@ Input a value for mariadb.db.password: asdf3
 The decrypt operation decrypts a values.yaml file and saves the decrypted result in values.dec.yaml:
 
 ```
-$ helm vault dec values.yaml
+$ helm vault dec -f values.yaml
 ```
 
 The values.dec.yaml file:
@@ -324,7 +324,7 @@ Doing so will result in a decrypted file that is stored as `my_file.{environment
 For example
 
 ```
-$ helm vault dec values.yaml -e prod
+$ helm vault dec -f values.yaml -e prod
 ```
 
 Will result in your production environment secrets being dumped into a file named `values.prod.dec.yaml`
@@ -333,7 +333,7 @@ Will result in your production environment secrets being dumped into a file name
 
 The view operation decrypts values.yaml and prints it to stdout:
 ```
-$ helm vault view values.yaml
+$ helm vault view -f values.yaml
 ```
 
 #### Edit
@@ -341,7 +341,7 @@ $ helm vault view values.yaml
 The edit operation will decrypt the values.yaml file and open it in an editor.
 
 ```
-$ helm vault edit values.yaml
+$ helm vault edit -f values.yaml
 ```
 
 This will read a value from $HELM_VAULT_EDITOR, or be specified with the `-e, --editor` option, or will choose a default of `vi` for Linux/MacOS, and `notepad` for Windows.

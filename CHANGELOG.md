@@ -1,6 +1,17 @@
 # CHANGELOG.md
 
+## 1.2.2
+
+### Fix
+- The '-f' argument did not work correctly.
+
+### Changed
+- Arguments for cmd: enc, dec, clean, view, edit
+
+
 ## 1.2.1
+
+### Changed
 - return name of plugin to 'vault'
 
 
@@ -20,7 +31,7 @@
 
 ## 1.0.1
 
-### Fix:
+### Fix
 - Test with helm, test_install and rename to test_template.
 - Exit code return, when raise exception
 
@@ -41,5 +52,5 @@
 - Adds an option to set an environment for secrets, using the -e/--environment flag
 - Moves the editor selection from -e to -ed
 
-### Fix:
+### Fix
 - Moved from gitlab-ci to Github Actions for CI
