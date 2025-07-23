@@ -1,20 +1,19 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/helm-vault-new) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/sh-helm-vault)
 
-[![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](https://github.com/shizacat/helm-vault-new/releases/latest)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/helm-vault-new/context:python)
-[![CI](https://github.com/shizacat/helm-vault-new/actions/workflows/main.yml/badge.svg)](https://github.com/shizacat/helm-vault-new/actions/workflows/main.yml)
+![Current Release](https://img.shields.io/github/v/release/shizacat/sh-helm-vault)
+![License](https://img.shields.io/github/license/shizacat/sh-helm-vault)
 
-# Helm-Vault
+[![CI](https://github.com/shizacat/sh-helm-vault/actions/workflows/main.yml/badge.svg)](https://github.com/shizacat/sh-helm-vault/actions/workflows/main.yml)
+
+# SH Helm Vault
 
 Helm-Vault stores private data from YAML files in Hashicorp Vault. Helm-Vault should be used if you want to publicize your YAML configuration files, without worrying about leaking secret information.
 
 ## Table of Contents
 
-- [Helm-Vault](#helm-vault)
+- [SH Helm Vault](#sh-helm-vault)
   - [Table of Contents](#table-of-contents)
 - [About the Project](#about-the-project)
-  - [Project Status](#project-status)
 - [Getting Started](#getting-started)
   - [Dependencies](#dependencies)
   - [Installation](#installation)
@@ -72,12 +71,6 @@ Helm-Vault was created to provide a better way to manage secrets for Helm, with 
 
 **[Back to top](#table-of-contents)**
 
-## Project Status
-
-The work isn't complete.
-
-**[Back to top](#table-of-contents)**
-
 # Getting Started
 
 ## Dependencies
@@ -98,17 +91,18 @@ The work isn't complete.
 1. Install the requirements
 
 ```bash
-pip3 install -r https://raw.githubusercontent.com/shizacat/helm-vault-new/main/requirements.txt
+pip3 install -r https://raw.githubusercontent.com/shizacat/sh-helm-vault/main/requirements.txt
 ```
 
 2. Install plugin
-```
-helm plugin install https://github.com/shizacat/helm-vault-new
+
+```bash
+helm plugin install https://github.com/shizacat/sh-helm-vault
 ```
 
 ## Usage and Examples
 
-```
+```bash
 $ helm vault --help
 usage: vault.py [-h] {enc,dec,clean,view,edit} ...
 
@@ -274,7 +268,7 @@ Each of these commands have their own help, referenced by `helm vault {enc,dec,c
 
 The encrypt operation encrypts a values.yaml file and saves the encrypted values in Vault:
 
-```
+```bash
 $ helm vault enc -f values.yaml
 Input a value for nextcloud.password: asdf1
 Input a value for externalDatabase.user: asdf2
@@ -283,7 +277,7 @@ Input a value for .mariadb.db.password: asdf3
 
 In addition, you can namespace your secrets to a desired environment by using the `-e` flag.
 
-```
+```bash
 helm vault enc -f values.yaml -e prod
 Input a value for nextcloud.password: asdf1
 Input a value for externalDatabase.user: asdf2
@@ -294,12 +288,12 @@ Input a value for mariadb.db.password: asdf3
 
 The decrypt operation decrypts a values.yaml file and saves the decrypted result in values.dec.yaml:
 
-```
+```bash
 $ helm vault dec -f values.yaml
 ```
 
 The values.dec.yaml file:
-```
+```yaml
 ...
 nextcloud:
   host: nextcloud.example.com
@@ -323,7 +317,7 @@ Doing so will result in a decrypted file that is stored as `my_file.{environment
 
 For example
 
-```
+```bash
 $ helm vault dec -f values.yaml -e prod
 ```
 
@@ -332,7 +326,8 @@ Will result in your production environment secrets being dumped into a file name
 #### View
 
 The view operation decrypts values.yaml and prints it to stdout:
-```
+
+```bash
 $ helm vault view -f values.yaml
 ```
 
@@ -340,7 +335,7 @@ $ helm vault view -f values.yaml
 
 The edit operation will decrypt the values.yaml file and open it in an editor.
 
-```
+```bash
 $ helm vault edit -f values.yaml
 ```
 
@@ -352,7 +347,7 @@ Note: This will save a `.dec.yaml` file that is not automatically cleaned up.
 
 The operation will delete all decrypted files in a directory:
 
-```
+```bash
 $ helm vault clean
 ```
 
@@ -365,6 +360,7 @@ key1: VAULT:helm1/test.key1
 key2: VAULT:/helm2/test.key2
 key_filename.txt: VAULT:/helm2/test.key_filename..txt
 ```
+
 This mean that key1 will be storing into base_path/helm1/test (key1) and key2 into /helm2/test (key2).
 If you need the dot in path or key, you can double it, example: key_filename.txt.
 Where is helm2 is root path enabled via secrets enable. For example:
@@ -383,7 +379,7 @@ This is mean that all keys with values like VAULT:something will be stored insid
 
 The operation wraps the default `helm install` command, automatically decrypting the `-f values.yaml` file and then cleaning up afterwards.
 
-```
+```bash
 $ helm vault install stable/nextcloud --name nextcloud --namespace nextcloud -f values.yaml
 ```
 
@@ -399,7 +395,7 @@ Specifically, this command will do the following:
 
 The operation wraps the default `helm template` command, automatically decrypting the `-f values.yaml` file and then cleaning up afterwards.
 
-```
+```bash
 $ helm vault template ./nextcloud --name nextcloud --namespace nextcloud -f values.yaml
 ```
 
@@ -413,7 +409,7 @@ $ helm vault template ./nextcloud --name nextcloud --namespace nextcloud -f valu
 
 The operation wraps the default `helm upgrade` command, automatically decrypting the `-f values.yaml` file and then cleaning up afterwards.
 
-```
+```bash
 $ helm vault upgrade nextcloud stable/nextcloud -f values.yaml
 ```
 
@@ -426,7 +422,7 @@ $ helm vault upgrade nextcloud stable/nextcloud -f values.yaml
 
 The operation wraps the default `helm lint` command, automatically decrypting the `-f values.yaml` file and then cleaning up afterwards.
 
-```
+```bash
 $ helm vault lint nextcloud -f values.yaml
 ```
 
@@ -438,7 +434,7 @@ $ helm vault lint nextcloud -f values.yaml
 
 The operation wraps the `helm diff` command (diff is another Helm plugin), automatically decrypting the `-f values.yaml` file and then cleaning up afterwards.
 
-```
+```bash
 $ helm vault diff upgrade nextcloud stable/nextcloud -f values.yaml
 ```
 
@@ -453,24 +449,24 @@ $ helm vault diff upgrade nextcloud stable/nextcloud -f values.yaml
 
 ## Getting the Source
 
-This project is [hosted on GitHub](https://github.com/shizacat/helm-vault-new). You can clone this project directly using this command:
+This project is [hosted on GitHub](https://github.com/shizacat/sh-helm-vault). You can clone this project directly using this command:
 
-```
-git clone git@github.com:shizacat/helm-vault-new.git
+```bash
+git clone git@github.com:shizacat/sh-helm-vault.git
 ```
 
 ## Running Tests
 
 Helm-Vault has built-in unit tests using pytest, you can run them with the command below:
 
-```
+```bash
 pip3 install -r requirements-dev.txt
 python3 -m pytest
 ```
 
 for running tests using docker, you can use the following command:
 
-```
+```bash
 ./run-test.sh
 ```
 
@@ -488,7 +484,7 @@ Releases are made for new features, and bugfixes.
 
 To get a new release, run the following:
 
-```
+```bash
 helm plugin upgrade vault
 ```
 
@@ -517,7 +513,7 @@ We encourage public contributions! Please review [CONTRIBUTING.md](docs/CONTRIBU
 
 # License
 
-Copyright (c) 2022 Alexey Matveev
+Copyright (c) 2025 Alexey Matveev
 
 This project is licensed under GPLv3 - see [LICENSE.md](LICENSE.md) file for details.
 
