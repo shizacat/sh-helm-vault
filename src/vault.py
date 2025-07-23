@@ -6,6 +6,7 @@ import glob
 import argparse
 import platform
 import subprocess
+import re
 from enum import Enum
 from typing import Any, IO, Optional, Tuple, Callable, Iterator, Sequence, List
 from dataclasses import dataclass, fields
@@ -339,31 +340,71 @@ class HelmVault(object):
             self.__current_walk_path[-1]
         )
 
-    def _split_path(self, path: str) -> Tuple[str, str]:
+    def _split_path_regex(self, path: str) -> Tuple[str, str]:
         """
-        Split only one symvol, if it double then will be skip
+        Split path to Vault key/value using regex
+        Format: "/path/a/b/c<SPLITER:.>key<SPLITER:.><version optional>"
+
+        Split on single separator (double separators are skipped)
+        Raises ValueError if path contains multiple dots
 
         Return
             path, key
             where:
                 key is name of field in Vault
         """
+        # pattern = re.compile(r'(.*?[^\.])\.([^\.].*)$')
+        pattern = re.compile(
+            rf'(.*?[^{re.escape(self.SPLITER_KEY)}])'
+            rf'{re.escape(self.SPLITER_KEY)}'
+            rf'([^{re.escape(self.SPLITER_KEY)}].*)$'
+        )
+        match = pattern.match(path)
+        if not match:
+            raise ValueError(f"Wrong format path: {path}")
+        # Check second group
+        if pattern.match(match.group(2)) is not None:
+            raise ValueError(f"Wrong format path: {path}")
+
+        v_path = match.group(1).replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        v_key = match.group(2).replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        return v_path, v_key
+
+    def _split_path(
+        self, path: str, use_regex: bool = False
+    ) -> Tuple[str, str]:
+        """
+        Split path to Vault key/value
+        Format: "/path/a/b/c<SPLITER:.>key<SPLITER:.><version optional>"
+
+        Split only one symvol, if it double then will be skip
+
+        Args:
+            use_regex: If True, uses regex implementation for splitting
+
+        Return
+            path, key
+            where:
+                key is name of field in Vault
+        """
+        v_path: Optional[str] = None
+        v_key: Optional[str] = None
+
         split_index = len(path) - 2  # from zero, and last - 1
-        r = None
         while split_index - 1:
             if path[split_index] == self.SPLITER_KEY:
                 if path[split_index - 1] == self.SPLITER_KEY:
                     split_index = split_index - 1
                 else:
-                    if r is not None:
+                    if v_path is not None and v_key is not None:
                         raise ValueError(f"Wrong format path: {path}")
-                    r = [path[:split_index], path[split_index + 1:]]
+                    v_path, v_key = [path[:split_index], path[split_index + 1:]]
             split_index = split_index - 1
-        if r is None:
+        if v_path is None or v_key is None:
             raise ValueError(f"Wrong format path: {path}")
-        r[0] = r[0].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        r[1] = r[1].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        return r[0], r[1]
+        v_path = v_path.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        v_key = v_key.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        return v_path, v_key
 
     def _get_decode_filename_by_index(self, index: int) -> str:
         """

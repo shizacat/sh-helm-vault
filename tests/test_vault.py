@@ -61,6 +61,46 @@ def test__split_path():
             print(r)
 
 
+def test__split_path_performance():
+    """Test performance comparison between _split_path and _split_path_regex"""
+    parsed = vault.parse_args()
+    obj = vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-f", "test.yaml"
+        ])
+    )
+
+    import timeit
+
+    test_paths = [
+        "/test/test..path/service.filename..pub",
+        "/check/service.key",
+    ]
+
+    # Number of iterations for timeit
+    number = 10000
+
+    # Time _split_path
+    time_split = timeit.timeit(
+        lambda: [obj._split_path(path) for path in test_paths],
+        number=number
+    )
+
+    # Time _split_path_regex
+    time_regex = timeit.timeit(
+        lambda: [obj._split_path_regex(path) for path in test_paths],
+        number=number
+    )
+
+    print(f"\nPerformance results (avg over {number} runs):")
+    print(f"_split_path: {time_split/number:.6f} sec per run")
+    print(f"_split_path_regex: {time_regex/number:.6f} sec per run")
+
+    # Assert that regex is not significantly slower (within 20%)
+    assert time_regex < time_split * 1.2, \
+        "_split_path_regex is significantly slower than _split_path"
+
+
 def test_load_yaml_multi(tmp_path_data: PosixPath):
     parsed = vault.parse_args()
     obj = vault.HelmVault(
