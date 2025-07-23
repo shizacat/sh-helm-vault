@@ -513,7 +513,7 @@ We encourage public contributions! Please review [CONTRIBUTING.md](docs/CONTRIBU
 
 # License
 
-Copyright (c) 2022 Alexey Matveev
+Copyright (c) 2025 Alexey Matveev
 
 This project is licensed under GPLv3 - see [LICENSE.md](LICENSE.md) file for details.
 
