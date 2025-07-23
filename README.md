@@ -1,8 +1,8 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/helm-vault-new) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/shizacat/sh-helm-vault)
 
 [![Production Ready](https://img.shields.io/badge/production-ready-green.svg)](https://github.com/shizacat/sh-helm-vault/releases/latest)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/sh-helm-vault/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/helm-vault-new.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/sh-helm-vault/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/shizacat/sh-helm-vault.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/sh-helm-vault/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/shizacat/sh-helm-vault.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/shizacat/sh-helm-vault/context:python)
 [![CI](https://github.com/shizacat/sh-helm-vault/actions/workflows/main.yml/badge.svg)](https://github.com/shizacat/sh-helm-vault/actions/workflows/main.yml)
 
 # SH Helm Vault
@@ -91,7 +91,7 @@ Helm-Vault was created to provide a better way to manage secrets for Helm, with 
 1. Install the requirements
 
 ```bash
-pip3 install -r https://raw.githubusercontent.com/shizacat/helm-vault-new/main/requirements.txt
+pip3 install -r https://raw.githubusercontent.com/shizacat/sh-helm-vault/main/requirements.txt
 ```
 
 2. Install plugin
