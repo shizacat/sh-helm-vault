@@ -54,4 +54,4 @@ jobs:
       - name: Test with pytest
         run: |
           echo "Running Tests"
-          python -m pytest
+          python -m pytest --cov=src --cov-report=xml --cov-report=term
