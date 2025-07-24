@@ -232,7 +232,7 @@ class HelmVault(object):
         return value
 
     def _add_to_secret(self, path: str):
-        path, key = self._split_path(path)
+        path, key, _ = self._split_path(path)
         if path not in self.__secrets.keys():
             self.__secrets[path] = {}
         self.__secrets[path][key] = input(f"Input a value for {path}.{key}: ")
@@ -241,7 +241,7 @@ class HelmVault(object):
         """Take data from Vault by path and return
         Analog vault read
         """
-        path, key = self._split_path(path)
+        path, key, _ = self._split_path(path)
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
@@ -340,37 +340,54 @@ class HelmVault(object):
             self.__current_walk_path[-1]
         )
 
-    def _split_path_regex(self, path: str) -> Tuple[str, str]:
+    def _split_path(self, path: str) -> Tuple[str, str, Optional[str]]:
         """
         Split path to Vault key/value using regex
         Format: "/path/a/b/c<SPLITER:.>key<SPLITER:.><version optional>"
 
         Split on single separator (double separators are skipped)
-        Raises ValueError if path contains multiple dots
+
+        Raises
+            ValueError if path contains multiple dots or wrong format
 
         Return
-            path, key
+            path, key, version if specified
             where:
                 key is name of field in Vault
+                version is version of path
         """
-        # pattern = re.compile(r'(.*?[^\.])\.([^\.].*)$')
         pattern = re.compile(
             rf'(.*?[^{re.escape(self.SPLITER_KEY)}])'
             rf'{re.escape(self.SPLITER_KEY)}'
             rf'([^{re.escape(self.SPLITER_KEY)}].*)$'
         )
+        v_version: Optional[int] = None
+
+        # Find path
         match = pattern.match(path)
         if not match:
             raise ValueError(f"Wrong format path: {path}")
-        # Check second group
-        if pattern.match(match.group(2)) is not None:
-            raise ValueError(f"Wrong format path: {path}")
+        v_path = match.group(1)
 
-        v_path = match.group(1).replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        v_key = match.group(2).replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        return v_path, v_key
+        # Find key
+        v_key = match.group(2)
+        match = pattern.match(match.group(2))
+        if match is not None:
+            # have a third section
+            v_key = match.group(1)
+            v_version = self._get_int(match.group(2), "Version")
 
-    def _split_path(
+        v_path = v_path.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        v_key = v_key.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        return v_path, v_key, v_version
+
+    def _get_int(self, value, note: Optional[str] = None) -> int:
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError(f'{"Value" if note is None else note} is not int')
+
+    def _split_path_classic(
         self, path: str, use_regex: bool = False
     ) -> Tuple[str, str]:
         """
