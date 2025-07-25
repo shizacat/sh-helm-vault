@@ -370,7 +370,7 @@ class HelmVault(object):
             ValueError if path contains multiple dots or wrong format
 
         Return
-            path, key, version if specified
+            path, key, version - if specified
             where:
                 key is name of field in Vault
                 version is version of path
