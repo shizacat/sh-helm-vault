@@ -9,6 +9,7 @@ from pathlib import Path, PosixPath
 import pytest
 
 import src.vault as vault
+import src.exception as hvexcept
 
 
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml").resolve()
@@ -25,6 +26,19 @@ def tmp_path_data(tmp_path) -> PosixPath:
     copyfile(
         CONTENT_TEST_YAML_DEC, tmp_path.joinpath(CONTENT_TEST_YAML_DEC.name))
     return tmp_path
+
+
+@pytest.fixture
+def helm_vault() -> vault.HelmVault:
+    """
+    Return HelmVault object
+    """
+    parsed = vault.parse_args()
+    return vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-f", "test.yaml"
+        ])
+    )
 
 
 def test__split_path():
@@ -306,6 +320,78 @@ def test__get_decode_files_2_env():
         ])
     )
     assert obj._get_decode_files() == ["test.prod.dec.yaml"]
+
+
+def test__vault_read_by_path(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-2"}
+    )
+
+    # read version
+    value = helm_vault._vault_read_by_path(f"{path}.user.1")
+    assert value == "user-version-1"
+    value = helm_vault._vault_read_by_path(f"{path}.user.2")
+    assert value == "user-version-2"
+
+
+def test__vault_read_by_path_error_01(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version,
+    Set version 1
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+    # set v1
+    helm_vault.envs.kvversion = vault.KVVersion.v1
+
+    # read
+    with pytest.raises(RuntimeError):
+        helm_vault._vault_read_by_path(f"{path}.user.1")
+
+
+def test__vault_read_by_path_error_02(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version,
+    Path or version don't exist
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+
+    # read
+    with pytest.raises(hvexcept.HVWrongPath):
+        helm_vault._vault_read_by_path(f"{path}.user.10")
 
 
 @pytest.mark.skipif(

@@ -12,7 +12,10 @@ from typing import Any, IO, Optional, Tuple, Callable, Iterator, Sequence, List
 from dataclasses import dataclass, fields
 
 import hvac
+import hvac.exceptions
 import ruamel.yaml
+
+from . import exception as hvexcept
 
 if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or a more recent version is required.")
@@ -238,10 +241,18 @@ class HelmVault(object):
         self.__secrets[path][key] = input(f"Input a value for {path}.{key}: ")
 
     def _vault_read_by_path(self, path: str) -> str:
-        """Take data from Vault by path and return
-        Analog vault read
         """
-        path, key, _ = self._split_path(path)
+        Take data from Vault by path and return it
+        Analog vault read
+
+        Raises
+            RuntimeError
+            HVWrongPath
+
+        Return
+            value for path
+        """
+        path, key, version = self._split_path(path)
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
@@ -253,6 +264,11 @@ class HelmVault(object):
 
         try:
             if self.envs.kvversion == KVVersion.v1:
+                if version is not None:
+                    raise RuntimeError(
+                        "KV version 1 don't get key by version, "
+                        f"path: {path}.{key}"
+                    )
                 data = self.vault_client.read(path)
                 return data.get("data", {}).get(key)
             if self.envs.kvversion == KVVersion.v2:
@@ -260,6 +276,7 @@ class HelmVault(object):
                     path=path,
                     mount_point=self.envs.mount_point,
                     raise_on_deleted_version=True,
+                    version=version
                 )
                 return data.get("data", {}).get("data", {}).get(key)
             raise RuntimeError("Wrong KV Version specified, either v1 or v2")
@@ -268,9 +285,11 @@ class HelmVault(object):
                 "Vault not configured correctly,"
                 f"check VAULT_ADDR and VAULT_TOKEN env variables. {ex}"
             )
+        except hvac.exceptions.InvalidPath:
+            raise hvexcept.HVWrongPath(f"Wrong path: {path}")
 
     def _vault_write_by_path(self, path: str, value: dict):
-        """Wirite value to Vault"""
+        """Write value to Vault"""
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
