@@ -31,7 +31,7 @@ Helm-Vault stores private data from YAML files in Hashicorp Vault. Helm-Vault sh
       - [View](#view)
       - [Edit](#edit)
       - [Clean](#clean)
-    - [vault path templating](#vault-path-templating)
+    - [Vault path templating](#vault-path-templating)
     - [Wrapper Examples](#wrapper-examples)
       - [Install](#install)
       - [Template](#template)
@@ -83,6 +83,7 @@ Helm-Vault was created to provide a better way to manage secrets for Helm, with 
   - [ ] VAULT_ADDR: The HTTP Address of Vault
   - [ ] VAULT_TOKEN: The token for accessing Vault
 - [ ] YAML files must be in a git repo or have the full path specified in the file. See [Vault Path Templating](#vault-path-templating).
+- [ ] Can read specific version of secret
 
 ## Installation
 
@@ -351,18 +352,20 @@ The operation will delete all decrypted files in a directory:
 $ helm vault clean
 ```
 
-### vault path templating
+### Vault path templating
 
 It is possible to setup vault's path inside helm chart like this
 
 ```
 key1: VAULT:helm1/test.key1
 key2: VAULT:/helm2/test.key2
+key2_version: VAULT:/helm2/test.key2.4
 key_filename.txt: VAULT:/helm2/test.key_filename..txt
 ```
 
 This mean that key1 will be storing into base_path/helm1/test (key1) and key2 into /helm2/test (key2).
 If you need the dot in path or key, you can double it, example: key_filename.txt.
+If you need select the '4' version for the 'key2_version', add the version number as an integer value in the third section.
 Where is helm2 is root path enabled via secrets enable. For example:
 
 ```

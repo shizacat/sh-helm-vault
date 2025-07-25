@@ -23,6 +23,16 @@ dependencies = [
     "hvac",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "nose",
+    "datadiff",
+    "mock",
+    "pytest_mock",
+    "pytest-cov",
+]
+
 [project.urls]
 Documentation = "https://github.com/shizacat/helm-vault-new"
 repository = "https://github.com/shizacat/helm-vault-new"
