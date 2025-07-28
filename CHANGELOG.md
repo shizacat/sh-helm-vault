@@ -1,7 +1,12 @@
 # CHANGELOG.md
 
+## 1.3.2
+- Exceptions was moved to vault.py
+
+
 ## 1.3.1
 - set execute bit on vault.py
+
 
 ## 1.3.0
 

@@ -9,7 +9,7 @@ from pathlib import Path, PosixPath
 import pytest
 
 import src.vault as vault
-import src.exception as hvexcept
+from src.vault import HVWrongPath
 
 
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml").resolve()
@@ -436,7 +436,7 @@ def test__vault_read_by_path_error_02(helm_vault: vault.HelmVault):
     )
 
     # read
-    with pytest.raises(hvexcept.HVWrongPath):
+    with pytest.raises(HVWrongPath):
         helm_vault._vault_read_by_path(f"{path}.user.10")
 
 

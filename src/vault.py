@@ -15,11 +15,23 @@ import hvac
 import hvac.exceptions
 import ruamel.yaml
 
-from . import exception as hvexcept
-
 if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or a more recent version is required.")
 
+
+# ---- Exceptions ----
+
+class HelmVaultExcepion(Exception):
+    """Base exception for HelmVault"""
+
+
+class HVWrongPath(HelmVaultExcepion):
+    """
+    The path don't exist, or version in Vault
+    """
+
+
+# ----- Models -----
 
 class KVVersion(Enum):
     v1 = "v1"
@@ -73,6 +85,8 @@ class Config:
         if self.environment and not self.environment.startswith("/"):
             self.environment = f"/{self.environment}"
 
+
+# ----- Modules -----
 
 class HelmVault(object):
     SPLITER_KEY = "."
@@ -290,7 +304,7 @@ class HelmVault(object):
                 f"check VAULT_ADDR and VAULT_TOKEN env variables. {ex}"
             )
         except hvac.exceptions.InvalidPath:
-            raise hvexcept.HVWrongPath(f"Wrong path: {path}")
+            raise HVWrongPath(f"Wrong path: {path}")
 
     def _vault_write_by_path(self, path: str, value: dict):
         """Write value to Vault"""
