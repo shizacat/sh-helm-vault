@@ -1,5 +1,8 @@
 # CHANGELOG.md
 
+## 1.3.1
+- set execute bit on vault.py
+
 ## 1.3.0
 
 - The path format has been updated
