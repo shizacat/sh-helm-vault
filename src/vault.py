@@ -84,7 +84,7 @@ class HelmVault(object):
         "diff"
     ]
 
-    def __init__(self, args: argparse.Namespace, leftovers: list[str]):
+    def __init__(self, args: argparse.Namespace, leftovers: List[str]):
         self.args = args
         self.leftovers = leftovers
 
