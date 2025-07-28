@@ -261,7 +261,7 @@ class HelmVault(object):
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
             print(
-                "Attempting to write to url: {}/v1/{}/data{}".format(
+                "Attempting to read to url: {}/v1/{}/data{}".format(
                     self.vault_client.url, self.envs.mount_point, path
                 ),
             )
@@ -297,9 +297,10 @@ class HelmVault(object):
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
+            print(self.envs)
             print(
                 "Attempting to write to url: {}/v1/{}/data{}".format(
-                    self.envs.vault_addr, self.envs.mount_point, path
+                    self.vault_client.url, self.envs.mount_point, path
                 ),
             )
 

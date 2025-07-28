@@ -208,7 +208,7 @@ def test_enc_with_env(tmp_path_data: PosixPath, capsys):
     vault.input = mock_input
 
     vault.main([
-        'enc',
+        "enc",
         "-f",
         str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
         '-e',
@@ -224,6 +224,30 @@ def test_enc_with_env(tmp_path_data: PosixPath, capsys):
         'Input a value for mariadb/db.password: ',
         'Done Encription\n',
     ]
+
+
+def test_enc_with_env_enable_verbose(tmp_path_data: PosixPath, capsys):
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+    input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
+    output = []
+
+    def mock_input(s):
+        output.append(s)
+        return input_values.pop(0)
+    vault.input = mock_input
+
+    vault.main([
+        "enc",
+        "-v",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+        '-e',
+        'test'
+    ])
+
+    output.append(capsys.readouterr().out)
+
+    assert output[-1].endswith("Done Encription\n")
 
 
 def test_refuse_enc_from_file_with_bad_name():
@@ -256,6 +280,26 @@ def test_dec(tmp_path_data: PosixPath, capsys):
     assert output == [
         'Done Decrypting\n',
     ]
+
+
+def test_dec_enable_verbose(tmp_path_data: PosixPath, capsys):
+    input_values = ["adfs1", "adfs2"]
+    output = []
+
+    def mock_input(s):
+        output.append(s)
+        return input_values.pop(0)
+    vault.input = mock_input
+
+    vault.main([
+        "dec",
+        "-v",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+    ])
+    output.append(capsys.readouterr().out)
+
+    assert output[0].endswith("Done Decrypting\n")
 
 
 def test_clean_dec_not_exist(tmp_path: PosixPath):
