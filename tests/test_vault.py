@@ -41,6 +41,8 @@ def helm_vault() -> vault.HelmVault:
     )
 
 
+# ====== Tests ======
+
 def test__split_path():
     parsed = vault.parse_args()
     obj = vault.HelmVault(

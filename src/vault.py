@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import os
 import sys
 import glob
@@ -40,7 +42,11 @@ class Config:
     environment: str = ""
 
     @classmethod
-    def create_from_env(cls, args, prefix: Optional[str] = "") -> "Config":
+    def create_from_env(
+        cls,
+        args: argparse.Namespace,
+        prefix: Optional[str] = ""
+    ) -> "Config":
         exclude_env = ["environment"]
         kwargs = {
             "editor": "vi" if platform.system() != "Windows" else "notepad.exe"
@@ -80,7 +86,7 @@ class HelmVault(object):
         "diff"
     ]
 
-    def __init__(self, args, leftovers):
+    def __init__(self, args: argparse.Namespace, leftovers: list[str]):
         self.args = args
         self.leftovers = leftovers
 
@@ -474,7 +480,7 @@ class HelmVault(object):
         ]
 
 
-def parse_args():
+def parse_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Store secrets from Helm in Vault\n\n"
