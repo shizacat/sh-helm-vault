@@ -1,5 +1,11 @@
 # CHANGELOG.md
 
+## 1.3.0
+
+- The path format has been updated
+- Now, you can read the key from the specified version in the Vault.
+
+
 ## 1.2.2
 
 ### Fix
