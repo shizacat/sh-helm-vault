@@ -6,12 +6,16 @@ import glob
 import argparse
 import platform
 import subprocess
+import re
 from enum import Enum
 from typing import Any, IO, Optional, Tuple, Callable, Iterator, Sequence, List
 from dataclasses import dataclass, fields
 
 import hvac
+import hvac.exceptions
 import ruamel.yaml
+
+from . import exception as hvexcept
 
 if sys.version_info[:2] < (3, 7):
     raise Exception("Python 3.7 or a more recent version is required.")
@@ -36,7 +40,11 @@ class Config:
     environment: str = ""
 
     @classmethod
-    def create_from_env(cls, args, prefix: Optional[str] = "") -> "Config":
+    def create_from_env(
+        cls,
+        args: argparse.Namespace,
+        prefix: Optional[str] = ""
+    ) -> "Config":
         exclude_env = ["environment"]
         kwargs = {
             "editor": "vi" if platform.system() != "Windows" else "notepad.exe"
@@ -76,7 +84,7 @@ class HelmVault(object):
         "diff"
     ]
 
-    def __init__(self, args, leftovers):
+    def __init__(self, args: argparse.Namespace, leftovers: List[str]):
         self.args = args
         self.leftovers = leftovers
 
@@ -231,27 +239,40 @@ class HelmVault(object):
         return value
 
     def _add_to_secret(self, path: str):
-        path, key = self._split_path(path)
+        path, key, _ = self._split_path(path)
         if path not in self.__secrets.keys():
             self.__secrets[path] = {}
         self.__secrets[path][key] = input(f"Input a value for {path}.{key}: ")
 
     def _vault_read_by_path(self, path: str) -> str:
-        """Take data from Vault by path and return
-        Analog vault read
         """
-        path, key = self._split_path(path)
+        Take data from Vault by path and return it
+        Analog vault read
+
+        Raises
+            RuntimeError
+            HVWrongPath
+
+        Return
+            value for path
+        """
+        path, key, version = self._split_path(path)
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
             print(
-                "Attempting to write to url: {}/v1/{}/data{}".format(
+                "Attempting to read to url: {}/v1/{}/data{}".format(
                     self.vault_client.url, self.envs.mount_point, path
                 ),
             )
 
         try:
             if self.envs.kvversion == KVVersion.v1:
+                if version is not None:
+                    raise RuntimeError(
+                        "KV version 1 don't get key by version, "
+                        f"path: {path}.{key}"
+                    )
                 data = self.vault_client.read(path)
                 return data.get("data", {}).get(key)
             if self.envs.kvversion == KVVersion.v2:
@@ -259,6 +280,7 @@ class HelmVault(object):
                     path=path,
                     mount_point=self.envs.mount_point,
                     raise_on_deleted_version=True,
+                    version=version
                 )
                 return data.get("data", {}).get("data", {}).get(key)
             raise RuntimeError("Wrong KV Version specified, either v1 or v2")
@@ -267,15 +289,18 @@ class HelmVault(object):
                 "Vault not configured correctly,"
                 f"check VAULT_ADDR and VAULT_TOKEN env variables. {ex}"
             )
+        except hvac.exceptions.InvalidPath:
+            raise hvexcept.HVWrongPath(f"Wrong path: {path}")
 
     def _vault_write_by_path(self, path: str, value: dict):
-        """Wirite value to Vault"""
+        """Write value to Vault"""
 
         if self.args.verbose:
             print(f"Using KV Version: {self.envs.kvversion}")
+            print(self.envs)
             print(
                 "Attempting to write to url: {}/v1/{}/data{}".format(
-                    self.envs.vault_addr, self.envs.mount_point, path
+                    self.vault_client.url, self.envs.mount_point, path
                 ),
             )
 
@@ -339,31 +364,88 @@ class HelmVault(object):
             self.__current_walk_path[-1]
         )
 
-    def _split_path(self, path: str) -> Tuple[str, str]:
+    def _split_path(self, path: str) -> Tuple[str, str, Optional[str]]:
         """
+        Split path to Vault key/value using regex
+        Format: "/path/a/b/c<SPLITER:.>key<SPLITER:.><version optional>"
+
+        Split on single separator (double separators are skipped)
+
+        Raises
+            ValueError if path contains multiple dots or wrong format
+
+        Return
+            path, key, version - if specified
+            where:
+                key is name of field in Vault
+                version is version of path
+        """
+        pattern = re.compile(
+            rf'(.*?[^{re.escape(self.SPLITER_KEY)}])'
+            rf'{re.escape(self.SPLITER_KEY)}'
+            rf'([^{re.escape(self.SPLITER_KEY)}].*)$'
+        )
+        v_version: Optional[int] = None
+
+        # Find path
+        match = pattern.match(path)
+        if not match:
+            raise ValueError(f"Wrong format path: {path}")
+        v_path = match.group(1)
+
+        # Find key
+        v_key = match.group(2)
+        match = pattern.match(match.group(2))
+        if match is not None:
+            # have a third section
+            v_key = match.group(1)
+            v_version = self._get_int(match.group(2), "Version")
+
+        v_path = v_path.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        v_key = v_key.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        return v_path, v_key, v_version
+
+    def _get_int(self, value, note: Optional[str] = None) -> int:
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError(f'{"Value" if note is None else note} is not int')
+
+    def _split_path_classic(
+        self, path: str, use_regex: bool = False
+    ) -> Tuple[str, str]:
+        """
+        Split path to Vault key/value
+        Format: "/path/a/b/c<SPLITER:.>key<SPLITER:.><version optional>"
+
         Split only one symvol, if it double then will be skip
+
+        Args:
+            use_regex: If True, uses regex implementation for splitting
 
         Return
             path, key
             where:
                 key is name of field in Vault
         """
+        v_path: Optional[str] = None
+        v_key: Optional[str] = None
+
         split_index = len(path) - 2  # from zero, and last - 1
-        r = None
         while split_index - 1:
             if path[split_index] == self.SPLITER_KEY:
                 if path[split_index - 1] == self.SPLITER_KEY:
                     split_index = split_index - 1
                 else:
-                    if r is not None:
+                    if v_path is not None and v_key is not None:
                         raise ValueError(f"Wrong format path: {path}")
-                    r = [path[:split_index], path[split_index + 1:]]
+                    v_path, v_key = [path[:split_index], path[split_index + 1:]]
             split_index = split_index - 1
-        if r is None:
+        if v_path is None or v_key is None:
             raise ValueError(f"Wrong format path: {path}")
-        r[0] = r[0].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        r[1] = r[1].replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
-        return r[0], r[1]
+        v_path = v_path.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        v_key = v_key.replace(self.SPLITER_KEY * 2, self.SPLITER_KEY)
+        return v_path, v_key
 
     def _get_decode_filename_by_index(self, index: int) -> str:
         """
@@ -397,7 +479,7 @@ class HelmVault(object):
         ]
 
 
-def parse_args():
+def parse_args() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Store secrets from Helm in Vault\n\n"

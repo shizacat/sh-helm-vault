@@ -9,6 +9,7 @@ from pathlib import Path, PosixPath
 import pytest
 
 import src.vault as vault
+import src.exception as hvexcept
 
 
 CONTENT_TEST_YAML = Path("./tests/data/test.yaml").resolve()
@@ -27,6 +28,21 @@ def tmp_path_data(tmp_path) -> PosixPath:
     return tmp_path
 
 
+@pytest.fixture
+def helm_vault() -> vault.HelmVault:
+    """
+    Return HelmVault object
+    """
+    parsed = vault.parse_args()
+    return vault.HelmVault(
+        *parsed.parse_known_args([
+            "enc", "-f", "test.yaml"
+        ])
+    )
+
+
+# ====== Tests ======
+
 def test__split_path():
     parsed = vault.parse_args()
     obj = vault.HelmVault(
@@ -38,11 +54,19 @@ def test__split_path():
         # request: str, answer: Tuple[str, str]
         (
             "/test/test..path/service.filename..pub",
-            ('/test/test.path/service', 'filename.pub')
+            ('/test/test.path/service', 'filename.pub', None)
+        ),
+        (
+            "/test/test..path/service.filename..pub.1",
+            ('/test/test.path/service', 'filename.pub', 1)
         ),
         (
             "/check/service.key",
-            ("/check/service", "key")
+            ("/check/service", "key", None)
+        ),
+        (
+            "/check/service.key.04",
+            ("/check/service", "key", 4)
         )
     ]
     list_paths_bad = [
@@ -50,15 +74,58 @@ def test__split_path():
         "/check",
         "/check.",
         "/check.key.key2"
+        "/check.key.4.any"
+        "/check.key.4.7"
     ]
     for request, response in list_paths_good:
         r = obj._split_path(request)
-        assert response, r
+        assert response == r
 
     for request in list_paths_bad:
         with pytest.raises(ValueError):
             r = obj._split_path(request)
-            print(r)
+
+
+# def test__split_path_performance():
+#     """
+#     Test performance comparison between _split_path and _split_path_regex
+#     """
+#     parsed = vault.parse_args()
+#     obj = vault.HelmVault(
+#         *parsed.parse_known_args([
+#             "enc", "-f", "test.yaml"
+#         ])
+#     )
+
+#     import timeit
+
+#     test_paths = [
+#         "/test/test..path/service.filename..pub",
+#         "/check/service.key",
+#     ]
+
+#     # Number of iterations for timeit
+#     number = 10000
+
+#     # Time _split_path
+#     time_split = timeit.timeit(
+#         lambda: [obj._split_path(path) for path in test_paths],
+#         number=number
+#     )
+
+#     # Time _split_path_regex
+#     time_regex = timeit.timeit(
+#         lambda: [obj._split_path_regex(path) for path in test_paths],
+#         number=number
+#     )
+
+#     print(f"\nPerformance results (avg over {number} runs):")
+#     print(f"_split_path: {time_split/number:.6f} sec per run")
+#     print(f"_split_path_regex: {time_regex/number:.6f} sec per run")
+
+#     # Assert that regex is not significantly slower (within 20%)
+#     assert time_regex < time_split * 1.2, \
+#         "_split_path_regex is significantly slower than _split_path"
 
 
 def test_load_yaml_multi(tmp_path_data: PosixPath):
@@ -141,7 +208,7 @@ def test_enc_with_env(tmp_path_data: PosixPath, capsys):
     vault.input = mock_input
 
     vault.main([
-        'enc',
+        "enc",
         "-f",
         str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
         '-e',
@@ -157,6 +224,30 @@ def test_enc_with_env(tmp_path_data: PosixPath, capsys):
         'Input a value for mariadb/db.password: ',
         'Done Encription\n',
     ]
+
+
+def test_enc_with_env_enable_verbose(tmp_path_data: PosixPath, capsys):
+    os.environ["HELM_VAULT_KVVERSION"] = "v2"
+    input_values = ["adfs1", "adfs2", "adfs3", "adfs4"]
+    output = []
+
+    def mock_input(s):
+        output.append(s)
+        return input_values.pop(0)
+    vault.input = mock_input
+
+    vault.main([
+        "enc",
+        "-v",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name)),
+        '-e',
+        'test'
+    ])
+
+    output.append(capsys.readouterr().out)
+
+    assert output[-1].endswith("Done Encription\n")
 
 
 def test_refuse_enc_from_file_with_bad_name():
@@ -189,6 +280,26 @@ def test_dec(tmp_path_data: PosixPath, capsys):
     assert output == [
         'Done Decrypting\n',
     ]
+
+
+def test_dec_enable_verbose(tmp_path_data: PosixPath, capsys):
+    input_values = ["adfs1", "adfs2"]
+    output = []
+
+    def mock_input(s):
+        output.append(s)
+        return input_values.pop(0)
+    vault.input = mock_input
+
+    vault.main([
+        "dec",
+        "-v",
+        "-f",
+        str(tmp_path_data.joinpath(CONTENT_TEST_YAML.name))
+    ])
+    output.append(capsys.readouterr().out)
+
+    assert output[0].endswith("Done Decrypting\n")
 
 
 def test_clean_dec_not_exist(tmp_path: PosixPath):
@@ -255,6 +366,78 @@ def test__get_decode_files_2_env():
         ])
     )
     assert obj._get_decode_files() == ["test.prod.dec.yaml"]
+
+
+def test__vault_read_by_path(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-2"}
+    )
+
+    # read version
+    value = helm_vault._vault_read_by_path(f"{path}.user.1")
+    assert value == "user-version-1"
+    value = helm_vault._vault_read_by_path(f"{path}.user.2")
+    assert value == "user-version-2"
+
+
+def test__vault_read_by_path_error_01(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version,
+    Set version 1
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+    # set v1
+    helm_vault.envs.kvversion = vault.KVVersion.v1
+
+    # read
+    with pytest.raises(RuntimeError):
+        helm_vault._vault_read_by_path(f"{path}.user.1")
+
+
+def test__vault_read_by_path_error_02(helm_vault: vault.HelmVault):
+    """
+    Get with specifed version,
+    Path or version don't exist
+    """
+    path = "/secret/testdata-versions"
+    helm_vault.envs.kvversion = vault.KVVersion.v2
+
+    # set versions
+    helm_vault.vault_client.secrets.kv.v2.delete_metadata_and_all_versions(
+        path=path
+    )
+
+    helm_vault._vault_write_by_path(
+        path=path, value={"user": "user-version-1"}
+    )
+
+    # read
+    with pytest.raises(hvexcept.HVWrongPath):
+        helm_vault._vault_read_by_path(f"{path}.user.10")
 
 
 @pytest.mark.skipif(
