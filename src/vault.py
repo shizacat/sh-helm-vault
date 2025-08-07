@@ -109,6 +109,8 @@ class HelmVault(object):
         # yaml config
         self.yaml = ruamel.yaml.YAML()
         self.yaml.preserve_quotes = True
+        # if you have very long string as multiline
+        self.yaml.width = sys.maxsize
 
         # vault config
         self.vault_client = hvac.Client(

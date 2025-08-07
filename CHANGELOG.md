@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.3.3
+- The width of the yaml file is set to 'sys.maxsize'. This is only a temporary solution.
+
+
 ## 1.3.2
 - Exceptions was moved to vault.py
 
